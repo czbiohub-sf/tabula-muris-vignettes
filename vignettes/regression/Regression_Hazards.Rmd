@@ -1,0 +1,76 @@
+---
+title: "Regression Hazards"
+output:
+  html_document: default
+  html_notebook: default
+  pdf_document: default
+---
+
+tl;dr "Technical confounders" are likely correlated with real biology. Regressing them out can badly distort the data.
+
+When analyzing single-cell sequencing data, it is natural to want to remove the effect of technical confounders. Statistics such as the cellular detection rate (number of genes detected per cell), library size (number of reads or UMI per cell), or percent mitochondrial reads may all represent some kind of bias. If those statistics vary between cell types, however, regressing them out will pull the expression vectors for those cell types closer together.
+
+We can see a few examples of this phenomenon in the Tabula Muris dataset.
+
+```{r}
+library(Seurat)
+library(here)
+library(tidyverse)
+```
+
+```{r}
+tm.droplet.matrix = readRDS(here("data", "TM_droplet_mat.rds"))
+
+tm.droplet.metadata = read_csv(here("data", "TM_droplet_metadata.csv"))
+row.names(tm.droplet.metadata) = tm.droplet.metadata %>% pull(cell)
+
+tmd <- CreateSeuratObject(raw.data = tm.droplet.matrix, meta.data = tm.droplet.metadata, project = "TabulaMuris")
+
+# Only keep annotated cells
+annotated_cells = tm.droplet.metadata %>% filter(!is.na(cell_ontology_class)) %>% pull(cell)
+tmd <- SubsetData(tmd, cells.use = annotated_cells, do.clean = TRUE)
+```
+
+```{r}
+tmd <- NormalizeData(tmd)
+```
+
+Consider the Bladder. Because the epithelial cells have significantly more UMI on average than the mesenchymal or endothelial cells, we are set up for Simpson's paradox: even if the expression of a gene is positively correlated with nUMI within each cell type, it may be negatively correlated if all cell types are considered together.
+
+```{r}
+FetchData(tmd, c('nUMI', 'tissue', 'free_annotation'))%>% filter(tissue == 'Bladder') %>%
+  ggplot(aes(x = tissue, y = log(nUMI), fill = free_annotation)) + geom_boxplot() + coord_flip()
+```
+
+The mesenchymal marker _Car3_ is positively correlated with nUMI within each cell type and negatively correlated at the level of the ensemble.
+
+```{r}
+FetchData(tmd, c('nUMI', 'tissue', 'Car3', 'free_annotation')) %>% filter(tissue == 'Bladder') %>% 
+  ggplot(aes(log(nUMI), Car3, color = free_annotation)) + geom_jitter(width = 0.2, alpha = 0.3) + geom_smooth(method = 'lm') + 
+  geom_smooth(method = 'lm', color = 'black')
+```
+
+A similar phenomenon can be seen in the tongue, where the number of genes detected per cell differs between cell types.
+
+```{r}
+FetchData(tmd, c('nGene', 'tissue', 'cell_ontology_class'))%>% filter(tissue == 'Tongue') %>%
+  ggplot(aes(x = tissue, y = nGene, fill = cell_ontology_class)) + geom_boxplot() + coord_flip()
+```
+
+Here, the proliferation marker _Top2a_ has quite different correlations with nUMI globally and within each cell type.
+
+```{r}
+FetchData(tmd, c('nGene', 'tissue', 'Top2a', 'cell_ontology_class')) %>% filter(tissue == 'Tongue') %>% 
+  ggplot(aes(nGene, Top2a, color = cell_ontology_class)) + geom_jitter(width = 0.2, alpha = 0.3) + geom_smooth(method = 'lm') + 
+  geom_smooth(method = 'lm', color = 'black')
+```
+
+Below one can see the potential for this sort of paradox for at least one cell type in every organ collected.
+
+```{r, fig.height = 30}
+FetchData(tmd, c('nGene', 'tissue', 'cell_ontology_class'))%>% 
+  ggplot(aes(x = tissue, y = nGene, fill = cell_ontology_class)) + geom_boxplot() + coord_flip() + 
+  ggtitle('nGene variability between cell types within tissues') + 
+  theme(axis.text = element_text(size=40), text = element_text(size=40), legend.position="none")
+```
+

@@ -1,0 +1,59 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code.
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*.
+
+```{r}
+library(Seurat)
+library(here)
+dir.create(here('vignettes', 'bcells'))
+source('~/tabula-muris/00_data_ingest/02_tissue_analysis_rmd/boilerplate.R')
+```
+
+
+```{r}
+robjs = c('~/all_global/FACS_all.Robj',
+          '~/all_global/droplet_all.Robj')
+
+for (robj in robjs){
+  robj_basename = basename(robj)
+  filename = sub('.robj', '_bcells.robj', here('bcells', robj_basename))
+  
+  # load(robj)
+  if (length(grep('droplet', robj_basename)) > 0){
+    tiss = tiss_droplet
+    scale = 1e4
+  } else {
+    tiss = tiss_FACS
+    scale = 1e6
+  }
+
+  bcell_ind = grepl('(B cell)|(leukocyte)', tiss@meta.data$cell_ontology_class, perl=TRUE)
+  bcell_ontologies = unique(tiss@meta.data$cell_ontology_class[bcell_ind])
+  print(bcell_ontologies)
+  bcell_ids = tiss@cell.names[bcell_ind]
+
+  tiss_bcells = SubsetData(tiss, cells.use=bcell_ids)
+  tiss_bcells = process_tissue(tiss_bcells, scale=scale)
+
+  filename = sub('.Robj', '_bcells.Robj', here('vignettes', 'bcells', robj_basename))
+  print(filename)
+  if (length(grep('droplet', robj_basename)) > 0){
+    tiss_droplet_bcells = tiss_bcells
+    save(tiss_droplet_bcells, file=filename)
+  } else {
+    tiss_facs_bcells = tiss_bcells
+    save(tiss_facs_bcells, file=filename)
+  }
+}
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

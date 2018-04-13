@@ -312,7 +312,7 @@ overlapMatrixNames = cell2table(overlapMatrixNames,'VariableNames',{'FACS','Drop
 writetable(overlapMatrixNames,sprintf('%s_cell_ontologies.csv',tissuename))
 
 ```
-[[https://github.com/czbiohub/tabula-muris-vignettes/blob/master/vignettes/methods_comparison/methods_comparison_diffExp.pdf|alt=methods_comparison_diffExp]]
+[[https://github.com/czbiohub/tabula-muris-vignettes/blob/master/vignettes/methods_comparison/methods_comparison_diffExp.pdf]]
 
 <p align="center">
   <img src="https://github.com/czbiohub/tabula-muris-vignettes/blob/master/vignettes/methods_comparison/methods_comparison_diffExp.pdf" width="350"/>

@@ -313,6 +313,11 @@ writetable(overlapMatrixNames,sprintf('%s_cell_ontologies.csv',tissuename))
 
 ```
 
-[figure]()
+
+down vote
+accepted
+Try this markdown:
+
+![alt text](methods_comparison_diffExp.pdf)
 
 This comparison suggests that independent datasets generated from the various tissue atlases that are beginning to arise can be combined and collectively analyzed to generate more robust characterizations of gene expression. 

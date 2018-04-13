@@ -1,22 +1,23 @@
 # Methods comparison
-With the accumulation of single cell RNA studies comes the burning question: how can we compare datasets generated in completely distinct ways? In creating Tabula muris for example we used two different technical approaches: one approach, microfluidic droplet-based 3’-end counting, enabled the survey of thousands of cells at relatively low coverage, while the other, FACS-based full length transcript analysis, enabled characterization of cell types with high sensitivity and coverage. Our dataset is therefore ideal for obtaining direct technical comparisons as cells from the same organ from the same animal were processed in parallel via the two methods.
+With the accumulation of single cell RNA studies comes the burning question: how can we compare datasets generated in completely distinct ways?
 
-[add Josh code snippets]
-We illustrate the variability to be expected between methods and experiments by comparing our two measurement approaches to one another, and to data from Han et al (Cell 2018) generated using a third method, microwell-seq. One striking feature is the variability in the number of genes detected per cell between organs and tissues and between methods. 
+In creating [Tabula muris](README.md) for example we used two different technical approaches: one approach, microfluidic droplet-based 3’-end counting, enabled the survey of thousands of cells at relatively low coverage, while the other, FACS-based full length transcript analysis, enabled characterization of cell types with high sensitivity and coverage. Our dataset is therefore ideal for obtaining direct [technical comparisons](linktothepaperfigures) as cells from the same organ from the same animal were processed in parallel via the two methods.
 
-[figure]
+<!--We illustrate the variability to be expected between methods and experiments by comparing our two measurement approaches to one another, and to data from Han et al (Cell 2018) generated using a third method, microwell-seq. One striking feature is the variability in the number of genes detected per cell between organs and tissues and between methods. -->
 
-This difference does not appear to be due to sequencing depth, as the microfluidic droplet libraries are nearly saturated (Supp. Fig. 4b) and deeper sequencing of the FACS libraries could only increase the number of genes detected.
+<!--[figure]-->
 
-[figure]
+<!--This difference does not appear to be due to sequencing depth, as the microfluidic droplet libraries are nearly saturated (Supp. Fig. 4b) and deeper sequencing of the FACS libraries could only increase the number of genes detected.-->
 
-We also looked at how the number of detected genes across each organ changes with different thresholds on the number of reads or UMIs (Supp. Fig. 5). 
+<!--[figure]-->
 
-[figure]
+<!--We also looked at how the number of detected genes across each organ changes with different thresholds on the number of reads or UMIs (Supp. Fig. 5). -->
 
-We found that the number of detected genes decreases monotonically with increasing thresholds at similar rates across different organs and tissues within each method. We observed that in the droplet data more than half of the detected genes are represented by only a single UMI; this is to be expected given that only a few thousand UMIs are captured per cell. The FACS data are sampled much more deeply and one needs to set a relatively high threshold of 40 reads to see a comparable reduction in gene detection sensitivity.
+<!--[figure]-->
 
-It is also interesting to take a rather high level approach and compare different methodologies at the level of biological interpretation. For that we we investigated whether the three methods demonstrate concordance on the genes which define each of the cell clusters. To do so, we computed lists of genes (see Methods “Differential expression overlap analysis”) that differentiate between each cell cluster and the rest of the cell clusters in each organ across all three methods, focusing on common organs and cell clusters for the three methods. The following code snippets are from the Matlab scripts available here (GitHub) and for simplicity here we also provide the gene signature files for each organ (csv, GitHub). There are 8 tissues for which we have data from the three methods:
+<!--We found that the number of detected genes decreases monotonically with increasing thresholds at similar rates across different organs and tissues within each method. We observed that in the droplet data more than half of the detected genes are represented by only a single UMI; this is to be expected given that only a few thousand UMIs are captured per cell. The FACS data are sampled much more deeply and one needs to set a relatively high threshold of 40 reads to see a comparable reduction in gene detection sensitivity.-->
+
+It is also interesting to take a rather high level approach and compare different methodologies at the level of biological interpretation. For that we we investigated whether the three methods demonstrate concordance on the genes which define each of the cell clusters. To do so, we computed [lists of genes](https://github.com/czbiohub/tabula-muris/blob/master/22_markers/FindMarkers.Rmd) that differentiate each cell type from the rest of the cells for a given organ across all three methods, focusing on [common organs] and cell types for the three methods. The following code snippets are from the Matlab scripts available [here](https://github.com/czbiohub/tabula-muris/blob/master/22_markers/methods_comparison.m) and for simplicity here we also provide the [gene signature files](https://github.com/czbiohub/tabula-muris/tree/master/22_markers) for each organ. There are 8 tissues for which we have data from the three methods:
 
 ```Matlab
 
@@ -312,6 +313,6 @@ writetable(overlapMatrixNames,sprintf('%s_cell_ontologies.csv',tissuename))
 
 ```
 
-[figure]
+[figure]()
 
 This comparison suggests that independent datasets generated from the various tissue atlases that are beginning to arise can be combined and collectively analyzed to generate more robust characterizations of gene expression. 

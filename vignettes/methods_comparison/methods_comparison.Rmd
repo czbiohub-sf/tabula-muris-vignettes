@@ -315,7 +315,7 @@ writetable(overlapMatrixNames,sprintf('%s_cell_ontologies.csv',tissuename))
 
 
 
-![](https://en.wikipedia.org/wiki/Mickey_Mouse#/media/File:Mickey_Mouse.png?raw=true)
+You can view the graphical output [here](https://github.com/czbiohub/tabula-muris-vignettes/blob/master/vignettes/methods_comparison/methods_comparison_diffExp.pdf)
 
 
 This comparison suggests that independent datasets generated from the various tissue atlases that are beginning to arise can be combined and collectively analyzed to generate more robust characterizations of gene expression. 

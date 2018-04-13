@@ -1,7 +1,7 @@
 # Methods comparison
 With the accumulation of single cell RNA studies comes the burning question: how can we compare datasets generated in completely distinct ways?
 
-In creating [Tabula muris](README.md) for example we used two different technical approaches: one approach, microfluidic droplet-based 3’-end counting, enabled the survey of thousands of cells at relatively low coverage, while the other, FACS-based full length transcript analysis, enabled characterization of cell types with high sensitivity and coverage. Our dataset is therefore ideal for obtaining direct [technical comparisons](linktothepaperfigures) as cells from the same organ from the same animal were processed in parallel via the two methods.
+In creating [Tabula muris](https://github.com/czbiohub/tabula-muris-vignettes/blob/master/README.md) for example we used two different technical approaches: one approach, microfluidic droplet-based 3’-end counting, enabled the survey of thousands of cells at relatively low coverage, while the other, FACS-based full length transcript analysis, enabled characterization of cell types with high sensitivity and coverage. Our dataset is therefore ideal for obtaining direct [technical comparisons](linktothepaperfigures) as cells from the same organ from the same animal were processed in parallel via the two methods.
 
 <!--We illustrate the variability to be expected between methods and experiments by comparing our two measurement approaches to one another, and to data from Han et al (Cell 2018) generated using a third method, microwell-seq. One striking feature is the variability in the number of genes detected per cell between organs and tissues and between methods. -->
 

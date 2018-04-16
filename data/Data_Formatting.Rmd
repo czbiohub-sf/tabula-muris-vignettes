@@ -1,0 +1,172 @@
+---
+title: "Data Formatting"
+output: html_notebook
+---
+
+This notebook converts the raw data and metadata from Tabula Muris into convenient-to-load RDS files.
+
+```{r}
+library(Matrix)
+library(tidyverse)
+library(here)
+```
+
+
+# Data Munging
+
+## FACS
+
+```{r}
+FACS_files = list.files(here("data","00_facs_raw_data","FACS"), full.names = TRUE)
+
+raw.data.list = list()
+for (file in FACS_files){
+  raw.data <- read.csv(file, row.names = 1)
+  raw.data <- Matrix(as.matrix(raw.data), sparse = TRUE)
+  raw.data.list <- append(raw.data.list, raw.data)
+}
+
+raw.data <- do.call(cbind, raw.data.list)
+```
+
+```{r}
+cell_order_FACS <- order(colnames(raw.data))
+raw.data = raw.data[,cell_order_FACS]
+```
+
+```{r}
+saveRDS(raw.data, here("data", "TM_facs_mat.rds"))
+```
+
+Add plate metadata.
+
+```{r}
+plate.meta.data <- read.csv(here("data","00_facs_raw_data", "metadata_FACS.csv"))
+
+plates <- str_split(colnames(raw.data),"[.]", simplify = TRUE)[,2]
+
+rownames(plate.meta.data) <- plate.meta.data$plate.barcode
+cell.meta.data <- plate.meta.data[plates,]
+cell.meta.data['cell'] <- colnames(raw.data)
+cell.meta.data = cell.meta.data %>% select(cell, everything())
+```
+
+Add TM annotations.
+
+```{r}
+annotations = read.csv(here("data","annotations_facs.csv"))
+annotations = annotations %>% select(cell, cell_ontology_class, cell_ontology_id, free_annotation)
+cell.meta.data = cell.meta.data %>% left_join(annotations, on = 'cell')
+```
+
+```{r}
+write_csv(cell.meta.data, here("data", "TM_facs_metadata.csv"))
+```
+
+## Droplet
+
+```{r}
+channel_folders = list.dirs(here("data","01_droplet_raw_data","droplet"), recursive = FALSE)
+
+n = length(strsplit(channel_folders[1],"[/]")[[1]])
+
+raw.data.list = list()
+channel.list = list()
+for (channel_folder in channel_folders){
+  raw.data <- Read10X(channel_folder)
+  channel = str_split(str_split(channel_folder,"/", simplify = TRUE)[1,n], "-", simplify = TRUE)[1,2]
+  colnames(raw.data) <-  lapply(colnames(raw.data), function(x) paste0(channel, '_', x))
+  raw.data.list <- append(raw.data.list, raw.data)
+  channel.list <- append(channel.list, rep(channel, length(colnames(raw.data))))
+}
+
+raw.data <- do.call(cbind, raw.data.list)
+cell.channels <- unlist(channel.list)
+```
+
+Order cells lexicographically.
+
+```{r}
+ordered_cell_names = order(colnames(raw.data))
+raw.data = raw.data[,ordered_cell_names]
+
+cell_counts = Matrix::colSums(raw.data)
+cells_above_cutoff = names(cell_counts[cell_counts > 100])
+raw.data = raw.data[,cells_above_cutoff]
+```
+
+```{r}
+saveRDS(raw.data, here("data", "TM_droplet_mat.rds"))
+```
+
+```{r}
+meta.data <- read.csv(here("data","01_droplet_raw_data", "metadata_droplet_clean.csv"))
+rownames(meta.data) <- meta.data$channel
+
+channel_regex = "(.*?_.*?_.*?)_"
+cell.channels <- str_match(colnames(raw.data), channel_regex)[,2]
+
+cell.meta.data <- meta.data[cell.channels,]
+cell.meta.data['cell'] <- colnames(raw.data)
+cell.meta.data = cell.meta.data %>% select(cell, everything())
+```
+
+
+Add TM annotations.
+
+```{r}
+annotations = read.csv(here("data","annotations_droplet.csv"))
+annotations = annotations %>% select(cell, cell_ontology_class, cell_ontology_id, free_annotation)
+cell.meta.data = cell.meta.data %>% left_join(annotations, on = 'cell')
+```
+
+```{r}
+write_csv(cell.meta.data, here("data", "TM_droplet_metadata.csv"))
+```
+
+# Loading Example
+
+```{r}
+drop_erccs <- function(data){
+  erccs <- grep(pattern = "^ERCC-", x = rownames(x = data), value = TRUE)
+  ercc.index <- grep(pattern = "^ERCC-", x = rownames(x = data), value = FALSE)
+  data[-ercc.index,]
+}
+```
+
+```{r}
+library(Seurat)
+```
+
+```{r}
+tm.facs.matrix = readRDS(here("data", "TM_facs_mat.rds"))
+tm.facs.matrix = drop_erccs(tm.facs.matrix)
+
+tm.facs.metadata = read_csv(here("data", "TM_facs_metadata.csv"))
+row.names(tm.facs.metadata) = tm.facs.metadata %>% pull(cell)
+
+tmf <- CreateSeuratObject(raw.data = tm.facs.matrix, meta.data = tm.facs.metadata, project = "TabulaMuris")
+
+# Only keep annotated cells
+annotated_cells = tm.facs.metadata %>% filter(!is.na(cell_ontology_class)) %>% pull(cell)
+tmf <- SubsetData(tmf, cells.use = annotated_cells, do.clean = TRUE)
+```
+
+```{r}
+tm.droplet.matrix = readRDS(here("data", "TM_droplet_mat.rds"))
+
+tm.droplet.metadata = read_csv(here("data", "TM_droplet_metadata.csv"))
+row.names(tm.droplet.metadata) = tm.droplet.metadata %>% pull(cell)
+
+tmd <- CreateSeuratObject(raw.data = tm.droplet.matrix, meta.data = tm.droplet.metadata, project = "TabulaMuris")
+
+# Only keep annotated cells
+annotated_cells = tm.droplet.metadata %>% filter(!is.na(cell_ontology_class)) %>% pull(cell)
+tmd <- SubsetData(tmd, cells.use = annotated_cells, do.clean = TRUE)
+```
+
+```{r}
+tmd %>% FetchData(c('Cd79a', 'Cd79b', 'tissue', 'nUMI', 'cell_ontology_class'), use.raw = T) %>% 
+  ggplot(aes(Cd79a, Cd79b)) + geom_jitter() + facet_wrap(~tissue)
+```
+

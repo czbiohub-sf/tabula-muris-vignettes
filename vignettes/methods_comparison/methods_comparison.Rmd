@@ -1,7 +1,13 @@
-# Methods comparison
-With the accumulation of single cell RNA studies comes the burning question: how can we compare datasets generated in completely distinct ways?
+# Integration of multiple scRNA-seq datasets from different labs
+With the accumulation of single cell RNA (scRNA-seq) studies comes the burning question: how can we compare datasets generated in completely distinct ways?
 
-In creating [Tabula muris](https://github.com/czbiohub/tabula-muris-vignettes/blob/master/README.md) for example we used two different technical approaches: one approach, microfluidic droplet-based 3’-end counting, enabled the survey of thousands of cells at relatively low coverage, while the other, FACS-based full length transcript analysis, enabled characterization of cell types with high sensitivity and coverage. Our dataset is therefore ideal for obtaining direct [technical comparisons](linktothepaperfigures) as cells from the same organ from the same animal were processed in parallel via the two methods.
+This question is fundamental because we want to be able to integrate datasets produced by different labs that report on similar biological specimens. In creating [Tabula muris](https://github.com/czbiohub/tabula-muris-vignettes/blob/master/README.md) we used two different technical approaches: 
+<ol>
+  <li><span style="font-weight: bold;">microfluidic droplet-based 3’-end counting</span> enabled the survey of thousands of cells at relatively low coverage;</li>
+  <li><span style="font-weight: bold;">FACS-based full length transcript analysis</span> enabled characterization of cell types with high sensitivity and coverage.</li>
+</ol>
+
+Our dataset therefore offers the ideal platform for techincal comparisons of sequencing results derived from identically isolated biological samples but processed with two distinct methods for scRNA-seq [technical comparisons](linktothepaperfigures).
 
 <!--We illustrate the variability to be expected between methods and experiments by comparing our two measurement approaches to one another, and to data from Han et al (Cell 2018) generated using a third method, microwell-seq. One striking feature is the variability in the number of genes detected per cell between organs and tissues and between methods. -->
 
@@ -17,10 +23,9 @@ In creating [Tabula muris](https://github.com/czbiohub/tabula-muris-vignettes/bl
 
 <!--We found that the number of detected genes decreases monotonically with increasing thresholds at similar rates across different organs and tissues within each method. We observed that in the droplet data more than half of the detected genes are represented by only a single UMI; this is to be expected given that only a few thousand UMIs are captured per cell. The FACS data are sampled much more deeply and one needs to set a relatively high threshold of 40 reads to see a comparable reduction in gene detection sensitivity.-->
 
-It is also interesting to take a rather high level approach and compare different methodologies at the level of biological interpretation. For that we we investigated whether the three methods demonstrate concordance on the genes which define each of the cell clusters. To do so, we computed [lists of genes](https://github.com/czbiohub/tabula-muris/blob/master/22_markers/FindMarkers.Rmd) that differentiate each cell type from the rest of the cells for a given organ across all three methods, focusing on [common organs] and cell types for the three methods. The following code snippets are from the Matlab scripts available [here](https://github.com/czbiohub/tabula-muris/blob/master/22_markers/methods_comparison.m) and for simplicity here we also provide the [gene signature files](https://github.com/czbiohub/tabula-muris/tree/master/22_markers) for each organ. There are 8 tissues for which we have data from the three methods:
+In parallel with our mouse cell atlas, Han et al (Cell 2018) developed a new method, microwell-seq, and also derived a mouse cell atlas. It is pertinent to compare these two works because together they offer a more complete picture of mouse biology at single cell resolution. We decided to compare the data at the level of differentially expressed genes. To do so, we computed [lists of genes](https://github.com/czbiohub/tabula-muris/blob/master/22_markers/FindMarkers.Rmd) that differentiate each cell type from the rest of the cells for a given organ across all three methods, focusing on common organs and cell types for the three methods. The following code snippets are from the Matlab scripts available [here](https://github.com/czbiohub/tabula-muris/blob/master/22_markers/methods_comparison.m) and for simplicity  we also provide the [gene signature files](https://github.com/czbiohub/tabula-muris/tree/master/22_markers) for each organ. There are 8 tissues for which we have data from the three methods:
 
 ```Matlab
-
 tissuesAvailable = {'Bladder', 'Kidney', 'Liver', 'Lung','Marrow', 'Limb_Muscle', 'Spleen', 'Thymus'}';
 [s,v] = listdlg('PromptString','Select a tissue:',...
     'SelectionMode','single',...
@@ -181,9 +186,11 @@ end
 ```
 
 The ```overlapMatrix``` has the following structure:
-1st column: cell types for the organ being compared as defined in the cell ontology associated with the FACS dataset
-2nd column: corresponding cell types as defined in the cell ontology associated with the 10x dataset
-3rd:end columns: corresponding cell types as defined in the cell ontology associated with the microwellSeq dataset
+<ul>
+  <li>1st column: cell types for the organ being compared as defined in the cell ontology associated with the FACS dataset</li>
+  <li>2nd column: corresponding cell types as defined in the cell ontology associated with the 10x dataset</li>
+  <li>3rd:end columns: corresponding cell types as defined in the cell ontology associated with the microwellSeq dataset</li>
+</ul>
 
 Lastly we computed the overlaps and draw the Venn diagrams
 
@@ -313,6 +320,10 @@ writetable(overlapMatrixNames,sprintf('%s_cell_ontologies.csv',tissuename))
 
 ```
 
-[figure]()
+<embed src="https://github.com/czbiohub/tabula-muris-vignettes/blob/master/vignettes/methods_comparison/methods_comparison_diffExp.pdf" width="500" height="375" type='application/pdf'>
 
-This comparison suggests that independent datasets generated from the various tissue atlases that are beginning to arise can be combined and collectively analyzed to generate more robust characterizations of gene expression. 
+This simple method illustrates one way of comparing datasets that have been independently obtained without the need to re-analize the raw data. We have, however, assumed that the annotations and the analysis are consistent across the datasets. For this case in particular, the assumption is valid (within certain limits) because all three datasets compared where analyzed using [Seurat](http://satijalab.org/seurat/) R package and the overlap among cell types was inferred using the gene symbol.
+
+Next we will be looking at using machine learning techniques to derive a better, scalable comparisons pipeline.
+
+&#35;tabula-muris &#35;sc-RNA-seq &#35;methods-comparison &#35;FACS &#35;10x-genomics &#35;droplets-based-methods &#35;microwell-seq

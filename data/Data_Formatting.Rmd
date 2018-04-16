@@ -29,9 +29,14 @@ for (file in FACS_files){
 raw.data <- do.call(cbind, raw.data.list)
 ```
 
+Use lexicographic ordering.
+
 ```{r}
 cell_order_FACS <- order(colnames(raw.data))
 raw.data = raw.data[,cell_order_FACS]
+
+gene_order_FACS <- order(rownames(raw.data))
+raw.data = raw.data[gene_order_FACS,]
 ```
 
 ```{r}
@@ -48,6 +53,7 @@ plates <- str_split(colnames(raw.data),"[.]", simplify = TRUE)[,2]
 rownames(plate.meta.data) <- plate.meta.data$plate.barcode
 cell.meta.data <- plate.meta.data[plates,]
 cell.meta.data['cell'] <- colnames(raw.data)
+cell.meta.data['method'] <- 'facs'
 cell.meta.data = cell.meta.data %>% select(cell, everything())
 ```
 
@@ -90,6 +96,9 @@ Order cells lexicographically.
 ordered_cell_names = order(colnames(raw.data))
 raw.data = raw.data[,ordered_cell_names]
 
+ordered_gene_names = order(rownames(raw.data))
+raw.data = raw.data[ordered_gene_names,]
+
 cell_counts = Matrix::colSums(raw.data)
 cells_above_cutoff = names(cell_counts[cell_counts > 100])
 raw.data = raw.data[,cells_above_cutoff]
@@ -107,6 +116,7 @@ channel_regex = "(.*?_.*?_.*?)_"
 cell.channels <- str_match(colnames(raw.data), channel_regex)[,2]
 
 cell.meta.data <- meta.data[cell.channels,]
+cell.meta.data['method'] <- 'droplet'
 cell.meta.data['cell'] <- colnames(raw.data)
 cell.meta.data = cell.meta.data %>% select(cell, everything())
 ```

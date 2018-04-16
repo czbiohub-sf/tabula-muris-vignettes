@@ -22,6 +22,6 @@ We have also made [AnnData](http://anndata.readthedocs.io/en/latest/)-formatted 
 import pandas
 import scanpy
 
-tm_facs_metadata = pd.read_csv('../../data/TM_facs_metadata.csv')
-tm_facs_data = scanpy.anndata.read_h5ad('../../data/TM_facs_mat.h5ad')
+tm_facs_metadata = pd.read_csv('data/TM_facs_metadata.csv')
+tm_facs_data = scanpy.anndata.read_h5ad('data/TM_facs_mat.h5ad')
 ```

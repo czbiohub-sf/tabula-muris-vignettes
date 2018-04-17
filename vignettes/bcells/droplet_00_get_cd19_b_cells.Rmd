@@ -1,6 +1,6 @@
 ---
 title: "B Cells droplet"
-output: html_document
+output: html_notebook
 ---
 
 ```{r setup, include=FALSE}
@@ -29,13 +29,6 @@ tiss_droplet_bcells <- ProjectPCA(object = tiss_droplet_bcells, do.print = FALSE
 PCHeatmap(object = tiss_droplet_bcells, pc.use = 1:3, cells.use = 500, do.balanced = TRUE, label.columns = FALSE, num.genes = 8)
 ```
 
-
-Run Independent Component Analysis.
-```{r, fig.height=4, fig.width=8}
-tiss_droplet_bcells <- RunICA(object = tiss_droplet_bcells)
-tiss_droplet_bcells <- ProjectDim(object = tiss_droplet_bcells, reduction.type = 'ica')
-ICHeatmap(object = tiss_droplet_bcells, ic.use = 1:3, cells.use = 500, do.balanced = TRUE, label.columns = FALSE, num.genes = 8)
-```
 
 Later on (in FindClusters and TSNE) you will pick a number of principal components to use. This has the effect of keeping the major directions of variation in the data and, ideally, supressing noise. There is no correct answer to the number to use, but a decent rule of thumb is to go until the plot plateaus.
 
@@ -97,6 +90,7 @@ PCHeatmap(object = tiss_droplet_cd19, pc.use = 1:3, cells.use = 500, do.balanced
 ```{r}
 PCElbowPlot(object = tiss_droplet_cd19)
 ```
+
 ```{r}
 # Set number of principal components.
 sub.n.pcs = 7
@@ -129,6 +123,10 @@ TSNEPlot(tiss_droplet_cd19, group.by = 'mouse.id')
 TSNEPlot(tiss_droplet_cd19, group.by = 'channel')
 ```
 
+```{r}
+tiss_droplet_cd19 = BuildClusterTree(tiss_droplet_cd19)
+PlotClusterTree(tiss_droplet_cd19)
+```
 
 ## Save the Robj for later
 
@@ -136,147 +134,3 @@ TSNEPlot(tiss_droplet_cd19, group.by = 'channel')
 save(tiss_droplet_cd19, file = here('vignettes', 'bcells', 'droplet_cd19.Robj'))
 ```
 
-
-```{r}
-cluster.markers = FindAllMarkers(object = tiss_droplet_cd19, only.pos = TRUE, min.pct = 0.25, thresh.use = 0.25)
-head(cluster.markers)
-```
-
-```{r}
-cluster.markers %>% group_by(cluster) %>% top_n(-10, p_val_adj)
-```
-
-
-```{r}
-find_markers <- function(tiss, annotation){
-  annotations = tiss@meta.data[,annotation]
-  unique_annotations = unique(annotations)
-  enumerated_annotations = 0:(length(unique_annotations)-1)
-  
-  annotation_ident = as.factor(plyr::mapvalues(x = annotations, from = unique_annotations, to = enumerated_annotations))
-  names(annotation_ident) = names(tiss@ident)
-  tiss@ident = annotation_ident
-  tiss.markers <- FindAllMarkers(object = tiss, only.pos = TRUE, min.pct = 0.25, thresh.use = 0.25)
-  
-  # Add a column showing what the annotations originally were
-  tiss.markers[, annotation] = as.factor(plyr::mapvalues(x=tiss.markers$cluster, from=enumerated_annotations, to=unique_annotations))
-
-  return(tiss.markers)
-}
-
-organ_markers = find_markers(tiss_droplet_cd19, 'tissue')
-head(organ_markers)
-```
-
-Filter only for tissues with enough cells
-
-```{r}
-tissue_cell_counts = table(tiss_droplet_cd19@meta.data$tissue)
-print(tissue_cell_counts)
-
-tissues_with_enough_cells = tissue_cell_counts[tissue_cell_counts > 50]
-tissues_with_enough_cells
-```
-
-
-```{r}
-organ_markers_enough_cells = filter(organ_markers, tissue %in% names(tissues_with_enough_cells))
-organ_markers_enough_cells
-```
-
-
-```{r}
-top_organ_markers = organ_markers_enough_cells %>% group_by(tissue) %>% top_n(-10, p_val_adj)
-top_organ_markers
-```
-
-
-```{r}
-write_csv(organ_markers_enough_cells, '~/tabula-muris-vignettes/vignettes/bcells/tissue_markers.csv')
-```
-
-
-```{r}
-ggplot(data=organ_markers_enough_cells, aes(x=p_val)) + geom_histogram() + facet_grid(~tissue)
-```
-```{r}
-ggplot(data=organ_markers_enough_cells, aes(x=p_val_adj)) + geom_histogram() + facet_grid(~tissue)
-```
-```{r}
-library(tidyverse)
-```
-
-
-```{r}
-top_organ_markers %>% filter(gene == p$labels$title) %>% select(tissue)
-```
-
-
-```{r, fig.height=40}
-nCol = 4
-plots = FeaturePlot(tiss_droplet_cd19, features.plot = sort(unique(top_organ_markers$gene)), 
-                    do.return = TRUE, nCol = nCol, no.axes=TRUE, 
-                    # Light grey to 
-                    cols.use=c('lightgrey', '#008080'))
-for (p in plots){
-  gene_name = p$labels$title
-  gene_tissues = top_organ_markers %>% filter(gene == p$labels$title) %>% select(tissue)
-  gene_tissues = as.character(as.vector(gene_tissues$tissue))
-  print(paste(gene_name, paste(gene_tissues)))
-  title = paste0(gene_name, ' (', paste(gene_tissues, sep=', '), ')')
-  p = p + labs(title=title)
-  plots[[gene_name]] = p
-}
-plots.combined <- plot_grid(plotlist = plots, ncol = nCol)
-invisible(x = lapply(X = plots.combined, FUN = print))
-ggsave('featureplot_top_organ_markers.pdf', height = 40, width=15)
-```
-
-
-```{r}
-organ_markers_enough_cells %>% group_by(tissue) %>% filter(p_val_adj < 1e-5) %>% count()
-```
-
-```{r}
-filter(organ_markers_enough_cells, tissue == "Lung")
-```
-```{r}
-filter(organ_markers_enough_cells, tissue == "Lung")
-```
-
-```{r}
-FeaturePlot(tiss_droplet_cd19, features.plot=c('Cd74'))
-```
-
-
-## Do ICA
-
-Run Principal Component Analysis.
-```{r, fig.height=4, fig.width=8, echo=FALSE}
-tiss_droplet_cd19 <- RunICA(object = tiss_droplet_cd19)
-tiss_droplet_cd19 <- ProjectDim(object = tiss_droplet_cd19, reduction.type = 'ica')
-ICHeatmap(object = tiss_droplet_cd19, ic.use = 1:6, cells.use = 500, do.balanced = TRUE, label.columns = FALSE, num.genes = 8)
-```
-
-Find clusters using ICA
-
-
-```{r}
-# Set resolution
-sub.res.used <- .1
-
-tiss_droplet_cd19 <- FindClusters(object = tiss_droplet_cd19, reduction.type = "ica", dims.use = 1:sub.n.pcs,
-    resolution = sub.res.used, print.output = 0, save.SNN = TRUE)
-```
-
-```{r}
-tiss_droplet_cd19 <- RunTSNE(object = tiss_droplet_cd19, dims.use = 1:n.pcs, seed.use = 10, perplexity=30)
-TSNEPlot(tiss_droplet_cd19)
-```
-
-
-## Look at plasma membrane and secretion genes
-```{r}
-go_data = read_csv(file.path('~', 'tabula-muris-vignettes', 'vignettes' ,'bcells', 'plasma_membrane_and_secretion_go_terms.csv'))
-head(go_data)
-```

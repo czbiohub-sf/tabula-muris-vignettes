@@ -1,0 +1,137 @@
+---
+title: "B Cells FACS"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load FACS B cells
+```{r}
+library(Seurat)
+library(tidyverse)
+library(here)
+
+load(here('vignettes', 'bcells', 'facs_bcells.Robj'))
+```
+
+
+Run Principal Component Analysis.
+```{r, fig.height=4, fig.width=8}
+tiss_facs_bcells <- RunPCA(object = tiss_facs_bcells, do.print = FALSE)
+tiss_facs_bcells <- ProjectPCA(object = tiss_facs_bcells, do.print = FALSE)
+PCHeatmap(object = tiss_facs_bcells, pc.use = 1:3, cells.use = 500, do.balanced = TRUE, label.columns = FALSE, num.genes = 8)
+```
+
+Later on (in FindClusters and TSNE) you will pick a number of principal components to use. This has the effect of keeping the major directions of variation in the data and, ideally, supressing noise. There is no correct answer to the number to use, but a decent rule of thumb is to go until the plot plateaus.
+
+```{r}
+PCElbowPlot(object = tiss_facs_bcells)
+```
+
+Choose the number of principal components to use.
+```{r}
+# Set number of principal components.
+n.pcs = 9
+```
+
+The clustering is performed based on a nearest neighbors graph. Cells that have similar expression will be joined together. The Louvain algorithm looks for groups of cells with high modularity--more connections within the group than between groups. The resolution parameter determines the scale...higher resolution will give more clusters, lower resolution will give fewer.
+
+For the top-level clustering, aim to under-cluster instead of over-cluster. It will be easy to subset groups and further analyze them below.
+
+```{r}
+# Set resolution
+res.used <- .1
+
+tiss_facs_bcells <- FindClusters(object = tiss_facs_bcells, reduction.type = "pca", dims.use = 1:n.pcs,
+    resolution = res.used, print.output = 0, save.SNN = TRUE)
+```
+
+To visualize
+```{r}
+# If cells are too spread out, you can raise the perplexity. If you have few cells, try a lower perplexity (but never less than 10).
+tiss_facs_bcells <- RunTSNE(object = tiss_facs_bcells, dims.use = 1:n.pcs, seed.use = 10, perplexity=30)
+```
+
+```{r}
+TSNEPlot(tiss_facs_bcells)
+TSNEPlot(tiss_facs_bcells, group.by = 'tissue')
+TSNEPlot(tiss_facs_bcells, group.by = 'cell_ontology_class')
+TSNEPlot(tiss_facs_bcells, group.by = 'mouse.sex')
+TSNEPlot(tiss_facs_bcells, group.by = 'mouse.id')
+TSNEPlot(tiss_facs_bcells, group.by = 'plate.barcode')
+```
+
+```{r}
+FeaturePlot(tiss_facs_bcells, c('Cd19', 'Ptprc'))
+```
+
+
+```{r}
+tiss_facs_cd19 = SubsetData(object = tiss_facs_bcells, ident.use = c(0, 1, 3, 4, 5))
+tiss_facs_cd19 = process_tissue(tiss_facs_cd19, scale=1e6)
+```
+
+
+Run Principal Component Analysis.
+```{r, fig.height=4, fig.width=8}
+tiss_facs_cd19 <- RunPCA(object = tiss_facs_cd19, do.print = FALSE)
+tiss_facs_cd19 <- ProjectPCA(object = tiss_facs_cd19, do.print = FALSE)
+PCHeatmap(object = tiss_facs_cd19, pc.use = 1:3, cells.use = 500, do.balanced = TRUE, label.columns = FALSE, num.genes = 8)
+```
+
+```{r}
+PCElbowPlot(object = tiss_facs_cd19)
+```
+```{r}
+# Set number of principal components.
+sub.n.pcs = 7
+```
+
+The clustering is performed based on a nearest neighbors graph. Cells that have similar expression will be joined together. The Louvain algorithm looks for groups of cells with high modularity--more connections within the group than between groups. The resolution parameter determines the scale...higher resolution will give more clusters, lower resolution will give fewer.
+
+For the top-level clustering, aim to under-cluster instead of over-cluster. It will be easy to subset groups and further analyze them below.
+
+```{r}
+# Set resolution
+sub.res.used <- .1
+
+tiss_facs_cd19 <- FindClusters(object = tiss_facs_cd19, reduction.type = "pca", dims.use = 1:sub.n.pcs,
+    resolution = sub.res.used, print.output = 0, save.SNN = TRUE)
+
+# If cells are too spread out, you can raise the perplexity. If you have few cells, try a lower perplexity (but never less than 10).
+tiss_facs_cd19 <- RunTSNE(object = tiss_facs_cd19, dims.use = 1:n.pcs, seed.use = 10, perplexity=30)
+```
+
+```{r}
+TSNEPlot(tiss_facs_cd19)
+TSNEPlot(tiss_facs_cd19, group.by = 'tissue')
+TSNEPlot(tiss_facs_cd19, group.by = 'cell_ontology_class')
+TSNEPlot(tiss_facs_cd19, group.by = 'mouse.sex')
+TSNEPlot(tiss_facs_cd19, group.by = 'mouse.id')
+# TSNEPlot(tiss_facs_cd19, group.by = 'plate.barcode')
+```
+
+
+```{r}
+tiss_facs_cd19 = BuildClusterTree(tiss_facs_cd19)
+PlotClusterTree(tiss_facs_cd19)
+```
+
+
+
+## Save cluster identities
+
+```{r}
+tiss_facs_cd19@meta.data[,'pca.cluster.ids'] = as.numeric(tiss_facs_cd19@ident)
+```
+
+
+
+## Save the Robj for later
+
+```{r}
+save(tiss_facs_cd19, file = here('vignettes', 'bcells', 'facs_cd19.Robj'))
+```
+

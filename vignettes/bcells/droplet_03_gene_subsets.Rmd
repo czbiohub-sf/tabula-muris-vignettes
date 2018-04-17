@@ -1,0 +1,100 @@
+---
+title: "B Cells droplet"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library(Seurat)
+library(tidyverse)
+library(here)
+
+load(here('vignettes', 'bcells', 'droplet_cd19.Robj'))
+```
+
+
+
+## Look at plasma membrane and secretion genes
+```{r}
+go_data = read_csv(file.path('~', 'tabula-muris-vignettes', 'vignettes' ,'bcells', 'plasma_membrane_and_secretion_go_terms.csv'))
+head(go_data)
+```
+```{r}
+go_data %>% group_by(category) %>% count()
+```
+
+
+```{r}
+go_data %>% group_by(`Annotated Term`) %>% count()
+```
+
+
+```{r}
+go_data = go_data %>% mutate(category_v2 = replace(category, "immune" %in% category, category))
+head(go_data)
+```
+
+```{r}
+go_subset = go_data %>% filter(category == "external side of plasma membrane")
+genes.use = as.character(go_subset$Symbol)
+head(genes.use)
+```
+
+Run Principal Component Analysis.
+```{r, fig.height=4, fig.width=8}
+tiss_droplet_cd19 <- RunPCA(object = tiss_droplet_cd19, do.print = FALSE, pc.genes=genes.use)
+tiss_droplet_cd19 <- ProjectPCA(object = tiss_droplet_cd19, do.print = FALSE)
+PCHeatmap(object = tiss_droplet_cd19, pc.use = 1:3, cells.use = 500, do.balanced = TRUE, label.columns = FALSE, num.genes = 8)
+```
+
+```{r}
+FetchData(tiss_droplet_cd19, vars.all = c('tissue', 'PC1', 'PC2')) %>% 
+  group_by(tissue) %>%
+  summarize(median_PC1 = median(PC1),
+            median_PC2 = median(PC2)) %>%
+  ggplot(aes(x = median_PC1, y = median_PC2, color = tissue)) + geom_point() +
+  guides(colour = guide_legend(override.aes = list(size=2)))
+```
+
+
+
+```{r}
+PCElbowPlot(object = tiss_droplet_cd19)
+```
+
+
+
+```{r}
+n.pcs = 6
+
+# Set resolution
+res.used <- .1
+
+tiss_droplet_cd19 <- FindClusters(object = tiss_droplet_cd19, reduction.type = "pca", dims.use = 1:n.pcs,
+    resolution = res.used, print.output = 0, save.SNN = TRUE, genes.use = genes.use)
+```
+
+To visualize
+```{r}
+# If cells are too spread out, you can raise the perplexity. If you have few cells, try a lower perplexity (but never less than 10).
+tiss_droplet_cd19 <- RunTSNE(object = tiss_droplet_cd19, dims.use = 1:n.pcs, seed.use = 10, perplexity=30,
+                             genes.use = genes.use)
+```
+
+```{r}
+TSNEPlot(tiss_droplet_cd19)
+TSNEPlot(tiss_droplet_cd19, group.by = 'tissue')
+TSNEPlot(tiss_droplet_cd19, group.by = 'cell_ontology_class')
+TSNEPlot(tiss_droplet_cd19, group.by = 'mouse.sex')
+TSNEPlot(tiss_droplet_cd19, group.by = 'mouse.id')
+TSNEPlot(tiss_droplet_cd19, group.by = 'channel')
+```

@@ -1,0 +1,134 @@
+---
+title: "B Cells droplet"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library(Seurat)
+library(tidyverse)
+library(here)
+source(here('vignettes', 'bcells', 'common.R'))
+load(here('vignettes', 'bcells', 'droplet_cd19.Robj'))
+```
+
+
+
+
+```{r}
+cluster.markers = FindAllMarkers(object = tiss_droplet_cd19, only.pos = TRUE, min.pct = 0.25, thresh.use = 0.25)
+```
+
+```{r}
+cluster.markers %>% group_by(cluster) %>% top_n(-10, p_val_adj)
+```
+
+
+
+```{r}
+write_csv(cluster.markers, here('vignettes', 'bcells', 'droplet_cluster_markers.csv'))
+```
+
+
+```{r}
+top_cluster_markers = cluster.markers %>% group_by(cluster) %>% top_n(-10, p_val_adj)
+```
+
+
+```{r, fig.height=40}
+nCol = 4
+plots = FeaturePlot(tiss_droplet_cd19, features.plot = sort(unique(top_cluster_markers$gene)), 
+                    do.return = TRUE, nCol = nCol, no.axes=TRUE, 
+                    # Light grey to 
+                    cols.use=c('lightgrey', '#008080'))
+for (p in plots){
+  gene_name = p$labels$title
+  gene_tissues = top_organ_markers %>% filter(gene == p$labels$title) %>% select(tissue)
+  gene_tissues = as.character(as.vector(gene_tissues$tissue))
+  print(paste(gene_name, paste(gene_tissues)))
+  title = paste0(gene_name, ' (', paste(gene_tissues, sep=', '), ')')
+  p = p + labs(title=title)
+  plots[[gene_name]] = p
+}
+plots.combined <- plot_grid(plotlist = plots, ncol = nCol)
+invisible(x = lapply(X = plots.combined, FUN = print))
+ggsave('droplet_featureplot_top_cluster_markers.pdf', height = 40, width=15)
+```
+
+
+
+```{r}
+organ_markers = find_markers(tiss_droplet_cd19, 'tissue')
+head(organ_markers)
+```
+
+Filter only for tissues with enough cells
+
+```{r}
+tissue_cell_counts = table(tiss_droplet_cd19@meta.data$tissue)
+print(tissue_cell_counts)
+
+tissues_with_enough_cells = tissue_cell_counts[tissue_cell_counts > 50]
+tissues_with_enough_cells
+```
+
+
+```{r}
+organ_markers_enough_cells = filter(organ_markers, tissue %in% names(tissues_with_enough_cells))
+organ_markers_enough_cells
+```
+
+
+```{r}
+top_organ_markers = organ_markers_enough_cells %>% group_by(tissue) %>% top_n(-10, p_val_adj)
+top_organ_markers
+```
+
+
+```{r}
+write_csv(organ_markers_enough_cells, here('vignettes', 'bcells', 'droplet_tissue_markers.csv'))
+```
+
+
+```{r}
+ggplot(data=organ_markers_enough_cells, aes(x=p_val)) + geom_histogram() + facet_grid(~tissue)
+```
+```{r}
+ggplot(data=organ_markers_enough_cells, aes(x=p_val_adj)) + geom_histogram() + facet_grid(~tissue)
+```
+
+```{r}
+top_organ_markers %>% filter(gene == p$labels$title) %>% select(tissue)
+```
+
+
+```{r, fig.height=40}
+nCol = 4
+plots = FeaturePlot(tiss_droplet_cd19, features.plot = sort(unique(top_organ_markers$gene)), 
+                    do.return = TRUE, nCol = nCol, no.axes=TRUE, 
+                    # Light grey to 
+                    cols.use=c('lightgrey', '#008080'))
+for (p in plots){
+  gene_name = p$labels$title
+  gene_tissues = top_organ_markers %>% filter(gene == p$labels$title) %>% select(tissue)
+  gene_tissues = as.character(as.vector(gene_tissues$tissue))
+  print(paste(gene_name, paste(gene_tissues)))
+  title = paste0(gene_name, ' (', paste(gene_tissues, sep=', '), ')')
+  p = p + labs(title=title)
+  plots[[gene_name]] = p
+}
+plots.combined <- plot_grid(plotlist = plots, ncol = nCol)
+invisible(x = lapply(X = plots.combined, FUN = print))
+ggsave('droplet_featureplot_top_organ_markers.pdf', height = 40, width=15)
+```
+
+

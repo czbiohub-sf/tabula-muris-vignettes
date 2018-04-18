@@ -1,9 +1,15 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output: 
+  html_notebook
+  html_document
 ---
 
-In this post, we will analyze the differential expression of B cells in different compartments of the body. To do this, we will first grab all the cells that were annotated as immune. Since we used the [Cell Ontology](http://obofoundry.org/ontology/cl.html), this is easy as we can take any cells that were annotated as a "leukocyte" or descendant, as this encompasses all immune cells. To enable such analyses, for each cell's annotation we stored both the `cell_ontology_class`, e.g. "leukocyte" and the `cell_ontology_id`. In particular, B cells, which are [lymphoctes, are a descendant (child) of leukocytes](http://www.ontobee.org/ontology/CL?iri=http://purl.obolibrary.org/obo/CL_0000542). The cell ontology ID for [leukocyte](http://purl.obolibrary.org/obo/CL_0000738) is `CL:0000738`. 
+In this post, we will analyze the differential expression of B cells in different compartments of the body. As this is 19,243 cells in the droplet data and 12,622 cells in the FACS data, I'll show here only the excerpts of the code, while linking the reader to the full analyses on GitHub.
+
+## Leverage the Cell Ontology to obtain all "immune" cells
+
+To do this, we will first grab all the cells that were annotated as immune. Since we used the [Cell Ontology](http://obofoundry.org/ontology/cl.html), this is easy as we can take any cells that were annotated as a "leukocyte" or descendant, as this encompasses all immune cells. To enable such analyses, for each cell's annotation we stored both the `cell_ontology_class`, e.g. "leukocyte" and the `cell_ontology_id`. In particular, B cells, which are [lymphoctes, are a descendant (child) of leukocytes](http://www.ontobee.org/ontology/CL?iri=http://purl.obolibrary.org/obo/CL_0000542). The cell ontology ID for [leukocyte](http://purl.obolibrary.org/obo/CL_0000738) is `CL:0000738`. 
 
 First, we load the [`ontologyIndex`](https://www.rdocumentation.org/packages/ontologyIndex/versions/2.4) package for reading ontologies, and grab the latest version of the Cell Ontology from GitHub. Then, we use `get_descendants` to obtain all children terms of "leukocyte," which includes "leukocyte" itself.
 
@@ -26,5 +32,49 @@ head(cell_ontology$name[leukocyte_or_descendant])
 ```
 
 
-Now that we have 
+Now that we have the Cell Ontology IDs that we want, it is very easy to grab the cells annotated as such:
+
+```{r}
+immune_ind = metadata$cell_ontology_id %in% leukocyte_or_descendant
+```
+
+To see the full code, please see the [`00_extract_immune_from_global`](https://github.com/czbiohub/tabula-muris-vignettes/blob/bcells/vignettes/bcells/00_extract_immune_from_global.nb.html) R Markdown file.
+
+## Filter to Cd19 B cells
+
+The immune system has a rich
+
+```{r}
+load(here('vignettes', 'bcells', 'droplet_immune_clustered.Robj'))
+
+TSNEPlot(tiss_droplet_immune)
+TSNEPlot(tiss_droplet_immune, group.by = 'tissue')
+TSNEPlot(tiss_droplet_immune, group.by = 'cell_ontology_class')
+TSNEPlot(tiss_droplet_immune, group.by = 'mouse.sex')
+TSNEPlot(tiss_droplet_immune, group.by = 'mouse.id')
+TSNEPlot(tiss_droplet_immune, group.by = 'channel')
+```
+
+
+To figure out which clusters to call "B cells," I'll look at both the overlap with the original cell ontology annotation and Cd19 expression. First, let's show a table of the overlap:
+
+
+```{r}
+table(tiss_droplet_immune@meta.data$cell_ontology_class, tiss_droplet_immune@ident)
+```
+
+Looks like clusters 0 and 3 are dominant for B cells, but I'm not sure about the rest. Since the clusters are numbered in descending order, that means that cluster 0 is the largest cluster. Let's look at Cd19 expression in the clusters now.
+
+
+```{r}
+genes_to_check = c('Cd19', # B cell marker
+                   'Ptprc' # Immune cell marker
+                   )
+FeaturePlot(tiss_droplet_immune, genes_to_check)
+VlnPlot(tiss_droplet_immune, genes_to_check)
+DotPlot(tiss_droplet_immune, genes_to_check)
+```
+
+The `VlnPlot` and `DotPlot` make it obvious that clusters 0, 3, and 9 are high for Cd19 expression, so we'll continue with them for further analyses.
+
 

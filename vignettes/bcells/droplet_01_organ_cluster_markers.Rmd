@@ -35,7 +35,7 @@ cluster.markers %>% group_by(cluster) %>% top_n(-10, p_val_adj)
 
 
 ```{r}
-write_csv(cluster.markers, here('vignettes', 'bcells', 'droplet_cluster_markers.csv'))
+write_markers(cluster.markers, here('vignettes', 'bcells', 'droplet_cluster_markers.csv'))
 ```
 
 
@@ -52,7 +52,7 @@ plots = FeaturePlot(tiss_droplet_cd19, features.plot = sort(unique(top_cluster_m
                     cols.use=c('lightgrey', '#008080'))
 for (p in plots){
   gene_name = p$labels$title
-  gene_tissues = top_organ_markers %>% filter(gene == p$labels$title) %>% select(tissue)
+  gene_tissues = top_cluster_markers %>% filter(gene == p$labels$title) %>% select(tissue)
   gene_tissues = as.character(as.vector(gene_tissues$tissue))
   print(paste(gene_name, paste(gene_tissues)))
   title = paste0(gene_name, ' (', paste(gene_tissues, sep=', '), ')')

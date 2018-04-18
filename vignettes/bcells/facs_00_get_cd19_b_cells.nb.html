@@ -178,39 +178,37 @@ $(document).ready(function () {
 <h2>Load FACS B cells</h2>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShTZXVyYXQpXG5saWJyYXJ5KHRpZHl2ZXJzZSlcbmxpYnJhcnkoaGVyZSlcblxubG9hZChoZXJlKCd2aWduZXR0ZXMnLCAnYmNlbGxzJywgJ2ZhY3NfYmNlbGxzLlJvYmonKSlcbmBgYCJ9 -->
-<pre class="r"><code>library(Seurat)
-library(tidyverse)
-library(here)
-
-load(here('vignettes', 'bcells', 'facs_bcells.Robj'))</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubGlicmFyeShTZXVyYXQpXG5saWJyYXJ5KHRpZHl2ZXJzZSlcbmxpYnJhcnkoaGVyZSlcblxubG9hZChoZXJlKCd2aWduZXR0ZXMnLCAnaW1tdW5lJywgJ2ZhY3NfaW1tdW5lLlJvYmonKSlcbmBgYFxuYGBgIn0= -->
+<p><code>r</code>r library(Seurat) library(tidyverse) library(here)</p>
+<p>load(here(‘vignettes’, ‘immune’, ‘facs_immune.Robj’))</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>Run Principal Component Analysis.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGlzc19mYWNzX2JjZWxscyA8LSBSdW5QQ0Eob2JqZWN0ID0gdGlzc19mYWNzX2JjZWxscywgZG8ucHJpbnQgPSBGQUxTRSlcbnRpc3NfZmFjc19iY2VsbHMgPC0gUHJvamVjdFBDQShvYmplY3QgPSB0aXNzX2ZhY3NfYmNlbGxzLCBkby5wcmludCA9IEZBTFNFKVxuUENIZWF0bWFwKG9iamVjdCA9IHRpc3NfZmFjc19iY2VsbHMsIHBjLnVzZSA9IDE6MywgY2VsbHMudXNlID0gNTAwLCBkby5iYWxhbmNlZCA9IFRSVUUsIGxhYmVsLmNvbHVtbnMgPSBGQUxTRSwgbnVtLmdlbmVzID0gOClcbmBgYCJ9 -->
-<pre class="r"><code>tiss_facs_bcells &lt;- RunPCA(object = tiss_facs_bcells, do.print = FALSE)
-tiss_facs_bcells &lt;- ProjectPCA(object = tiss_facs_bcells, do.print = FALSE)
-PCHeatmap(object = tiss_facs_bcells, pc.use = 1:3, cells.use = 500, do.balanced = TRUE, label.columns = FALSE, num.genes = 8)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxudGlzc19mYWNzX2ltbXVuZSA8LSBSdW5QQ0Eob2JqZWN0ID0gdGlzc19mYWNzX2ltbXVuZSwgZG8ucHJpbnQgPSBGQUxTRSlcbnRpc3NfZmFjc19pbW11bmUgPC0gUHJvamVjdFBDQShvYmplY3QgPSB0aXNzX2ZhY3NfaW1tdW5lLCBkby5wcmludCA9IEZBTFNFKVxuUENIZWF0bWFwKG9iamVjdCA9IHRpc3NfZmFjc19pbW11bmUsIHBjLnVzZSA9IDE6MywgY2VsbHMudXNlID0gNTAwLCBkby5iYWxhbmNlZCA9IFRSVUUsIGxhYmVsLmNvbHVtbnMgPSBGQUxTRSwgbnVtLmdlbmVzID0gOClcbmBgYFxuYGBgIn0= -->
+<p><code>r</code>r tiss_facs_immune &lt;- RunPCA(object = tiss_facs_immune, do.print = FALSE) tiss_facs_immune &lt;- ProjectPCA(object = tiss_facs_immune, do.print = FALSE) PCHeatmap(object = tiss_facs_immune, pc.use = 1:3, cells.use = 500, do.balanced = TRUE, label.columns = FALSE, num.genes = 8)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>Later on (in FindClusters and TSNE) you will pick a number of principal components to use. This has the effect of keeping the major directions of variation in the data and, ideally, supressing noise. There is no correct answer to the number to use, but a decent rule of thumb is to go until the plot plateaus.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuUENFbGJvd1Bsb3Qob2JqZWN0ID0gdGlzc19mYWNzX2JjZWxscylcbmBgYCJ9 -->
-<pre class="r"><code>PCElbowPlot(object = tiss_facs_bcells)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuUENFbGJvd1Bsb3Qob2JqZWN0ID0gdGlzc19mYWNzX2ltbXVuZSlcbmBgYFxuYGBgIn0= -->
+<p><code>r</code>r PCElbowPlot(object = tiss_facs_immune)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>Choose the number of principal components to use.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBTZXQgbnVtYmVyIG9mIHByaW5jaXBhbCBjb21wb25lbnRzLlxubi5wY3MgPSA5XG5gYGAifQ== -->
-<pre class="r"><code># Set number of principal components.
-n.pcs = 9</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuIyBTZXQgbnVtYmVyIG9mIHByaW5jaXBhbCBjb21wb25lbnRzLlxubi5wY3MgPSA5XG5gYGBcbmBgYCJ9 -->
+<p><code>r</code>r # Set number of principal components. n.pcs = 9</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -218,71 +216,70 @@ n.pcs = 9</code></pre>
 <p>For the top-level clustering, aim to under-cluster instead of over-cluster. It will be easy to subset groups and further analyze them below.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBTZXQgcmVzb2x1dGlvblxucmVzLnVzZWQgPC0gLjFcblxudGlzc19mYWNzX2JjZWxscyA8LSBGaW5kQ2x1c3RlcnMob2JqZWN0ID0gdGlzc19mYWNzX2JjZWxscywgcmVkdWN0aW9uLnR5cGUgPSBcInBjYVwiLCBkaW1zLnVzZSA9IDE6bi5wY3MsXG4gICAgcmVzb2x1dGlvbiA9IHJlcy51c2VkLCBwcmludC5vdXRwdXQgPSAwLCBzYXZlLlNOTiA9IFRSVUUpXG5gYGAifQ== -->
-<pre class="r"><code># Set resolution
-res.used &lt;- .1
-
-tiss_facs_bcells &lt;- FindClusters(object = tiss_facs_bcells, reduction.type = &quot;pca&quot;, dims.use = 1:n.pcs,
-    resolution = res.used, print.output = 0, save.SNN = TRUE)</code></pre>
-<!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>To visualize</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBJZiBjZWxscyBhcmUgdG9vIHNwcmVhZCBvdXQsIHlvdSBjYW4gcmFpc2UgdGhlIHBlcnBsZXhpdHkuIElmIHlvdSBoYXZlIGZldyBjZWxscywgdHJ5IGEgbG93ZXIgcGVycGxleGl0eSAoYnV0IG5ldmVyIGxlc3MgdGhhbiAxMCkuXG50aXNzX2ZhY3NfYmNlbGxzIDwtIFJ1blRTTkUob2JqZWN0ID0gdGlzc19mYWNzX2JjZWxscywgZGltcy51c2UgPSAxOm4ucGNzLCBzZWVkLnVzZSA9IDEwLCBwZXJwbGV4aXR5PTMwKVxuYGBgIn0= -->
-<pre class="r"><code># If cells are too spread out, you can raise the perplexity. If you have few cells, try a lower perplexity (but never less than 10).
-tiss_facs_bcells &lt;- RunTSNE(object = tiss_facs_bcells, dims.use = 1:n.pcs, seed.use = 10, perplexity=30)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuIyBJZiBjZWxscyBhcmUgdG9vIHNwcmVhZCBvdXQsIHlvdSBjYW4gcmFpc2UgdGhlIHBlcnBsZXhpdHkuIElmIHlvdSBoYXZlIGZldyBjZWxscywgdHJ5IGEgbG93ZXIgcGVycGxleGl0eSAoYnV0IG5ldmVyIGxlc3MgdGhhbiAxMCkuXG50aXNzX2ZhY3NfaW1tdW5lIDwtIFJ1blRTTkUob2JqZWN0ID0gdGlzc19mYWNzX2ltbXVuZSwgZGltcy51c2UgPSAxOm4ucGNzLCBzZWVkLnVzZSA9IDEwLCBwZXJwbGV4aXR5PTMwKVxuYGBgXG5gYGAifQ== -->
+<p><code>r</code>r # If cells are too spread out, you can raise the perplexity. If you have few cells, try a lower perplexity (but never less than 10). tiss_facs_immune &lt;- RunTSNE(object = tiss_facs_immune, dims.use = 1:n.pcs, seed.use = 10, perplexity=30)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuVFNORVBsb3QodGlzc19mYWNzX2JjZWxscylcblRTTkVQbG90KHRpc3NfZmFjc19iY2VsbHMsIGdyb3VwLmJ5ID0gJ3Rpc3N1ZScpXG5UU05FUGxvdCh0aXNzX2ZhY3NfYmNlbGxzLCBncm91cC5ieSA9ICdjZWxsX29udG9sb2d5X2NsYXNzJylcblRTTkVQbG90KHRpc3NfZmFjc19iY2VsbHMsIGdyb3VwLmJ5ID0gJ21vdXNlLnNleCcpXG5UU05FUGxvdCh0aXNzX2ZhY3NfYmNlbGxzLCBncm91cC5ieSA9ICdtb3VzZS5pZCcpXG5UU05FUGxvdCh0aXNzX2ZhY3NfYmNlbGxzLCBncm91cC5ieSA9ICdwbGF0ZS5iYXJjb2RlJylcbmBgYCJ9 -->
-<pre class="r"><code>TSNEPlot(tiss_facs_bcells)
-TSNEPlot(tiss_facs_bcells, group.by = 'tissue')
-TSNEPlot(tiss_facs_bcells, group.by = 'cell_ontology_class')
-TSNEPlot(tiss_facs_bcells, group.by = 'mouse.sex')
-TSNEPlot(tiss_facs_bcells, group.by = 'mouse.id')
-TSNEPlot(tiss_facs_bcells, group.by = 'plate.barcode')</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuVFNORVBsb3QodGlzc19mYWNzX2ltbXVuZSlcblRTTkVQbG90KHRpc3NfZmFjc19pbW11bmUsIGdyb3VwLmJ5ID0gJ3Rpc3N1ZScpXG5UU05FUGxvdCh0aXNzX2ZhY3NfaW1tdW5lLCBncm91cC5ieSA9ICdjZWxsX29udG9sb2d5X2NsYXNzJylcblRTTkVQbG90KHRpc3NfZmFjc19pbW11bmUsIGdyb3VwLmJ5ID0gJ21vdXNlLnNleCcpXG5UU05FUGxvdCh0aXNzX2ZhY3NfaW1tdW5lLCBncm91cC5ieSA9ICdtb3VzZS5pZCcpXG5UU05FUGxvdCh0aXNzX2ZhY3NfaW1tdW5lLCBncm91cC5ieSA9ICdwbGF0ZS5iYXJjb2RlJylcbmBgYFxuYGBgIn0= -->
+<p><code>r</code>r TSNEPlot(tiss_facs_immune) TSNEPlot(tiss_facs_immune, group.by = ‘tissue’) TSNEPlot(tiss_facs_immune, group.by = ‘cell_ontology_class’) TSNEPlot(tiss_facs_immune, group.by = ‘mouse.sex’) TSNEPlot(tiss_facs_immune, group.by = ‘mouse.id’) TSNEPlot(tiss_facs_immune, group.by = ‘plate.barcode’)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuRmVhdHVyZVBsb3QodGlzc19mYWNzX2JjZWxscywgYygnQ2QxOScsICdQdHByYycpKVxuYGBgIn0= -->
-<pre class="r"><code>FeaturePlot(tiss_facs_bcells, c('Cd19', 'Ptprc'))</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxudGFibGUodGlzc19mYWNzX2ltbXVuZUBtZXRhLmRhdGEkY2VsbF9vbnRvbG9neV9jbGFzcywgdGlzc19mYWNzX2ltbXVuZUBpZGVudClcbmBgYFxuYGBgIn0= -->
+<p><code>r</code>r table(<a href="mailto:tiss_facs_immune@meta.data$cell_ontology_class">tiss_facs_immune@meta.data$cell_ontology_class</a>, <a href="mailto:tiss_facs_immune@ident">tiss_facs_immune@ident</a>)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGlzc19mYWNzX2NkMTkgPSBTdWJzZXREYXRhKG9iamVjdCA9IHRpc3NfZmFjc19iY2VsbHMsIGlkZW50LnVzZSA9IGMoMCwgMSwgMywgNCwgNSkpXG50aXNzX2ZhY3NfY2QxOSA9IHByb2Nlc3NfdGlzc3VlKHRpc3NfZmFjc19jZDE5LCBzY2FsZT0xZTYpXG5gYGAifQ== -->
-<pre class="r"><code>tiss_facs_cd19 = SubsetData(object = tiss_facs_bcells, ident.use = c(0, 1, 3, 4, 5))
-tiss_facs_cd19 = process_tissue(tiss_facs_cd19, scale=1e6)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuZ2VuZXNfdG9fY2hlY2s9IGMoJ0NkMTknLCAnUHRwcmMnLCAnQ2Q3OWEnKVxuXG5GZWF0dXJlUGxvdCh0aXNzX2ZhY3NfaW1tdW5lLCBnZW5lc190b19jaGVjaylcblJpZGdlUGxvdCh0aXNzX2ZhY3NfaW1tdW5lLCBnZW5lc190b19jaGVjaylcbkRvdFBsb3QodGlzc19mYWNzX2ltbXVuZSwgZ2VuZXNfdG9fY2hlY2spXG5gYGBcbmBgYCJ9 -->
+<p><code>r</code>r genes_to_check= c(‘Cd19’, ‘Ptprc’, ‘Cd79a’)</p>
+<p>FeaturePlot(tiss_facs_immune, genes_to_check) RidgePlot(tiss_facs_immune, genes_to_check) DotPlot(tiss_facs_immune, genes_to_check)</p>
+<pre><code></code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxudGlzc19mYWNzX2NkMTkgPSBTdWJzZXREYXRhKG9iamVjdCA9IHRpc3NfZmFjc19pbW11bmUsIGlkZW50LnVzZSA9IGMoMCwgMikpXG50aXNzX2ZhY3NfY2QxOSA9IHByb2Nlc3NfdGlzc3VlKHRpc3NfZmFjc19jZDE5LCBzY2FsZT0xZTYpXG5gYGBcbmBgYCJ9 -->
+<p><code>r</code>r tiss_facs_cd19 = SubsetData(object = tiss_facs_immune, ident.use = c(0, 2)) tiss_facs_cd19 = process_tissue(tiss_facs_cd19, scale=1e6)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>Run Principal Component Analysis.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGlzc19mYWNzX2NkMTkgPC0gUnVuUENBKG9iamVjdCA9IHRpc3NfZmFjc19jZDE5LCBkby5wcmludCA9IEZBTFNFKVxudGlzc19mYWNzX2NkMTkgPC0gUHJvamVjdFBDQShvYmplY3QgPSB0aXNzX2ZhY3NfY2QxOSwgZG8ucHJpbnQgPSBGQUxTRSlcblBDSGVhdG1hcChvYmplY3QgPSB0aXNzX2ZhY3NfY2QxOSwgcGMudXNlID0gMTozLCBjZWxscy51c2UgPSA1MDAsIGRvLmJhbGFuY2VkID0gVFJVRSwgbGFiZWwuY29sdW1ucyA9IEZBTFNFLCBudW0uZ2VuZXMgPSA4KVxuYGBgIn0= -->
-<pre class="r"><code>tiss_facs_cd19 &lt;- RunPCA(object = tiss_facs_cd19, do.print = FALSE)
-tiss_facs_cd19 &lt;- ProjectPCA(object = tiss_facs_cd19, do.print = FALSE)
-PCHeatmap(object = tiss_facs_cd19, pc.use = 1:3, cells.use = 500, do.balanced = TRUE, label.columns = FALSE, num.genes = 8)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxudGlzc19mYWNzX2NkMTkgPC0gUnVuUENBKG9iamVjdCA9IHRpc3NfZmFjc19jZDE5LCBkby5wcmludCA9IEZBTFNFKVxudGlzc19mYWNzX2NkMTkgPC0gUHJvamVjdFBDQShvYmplY3QgPSB0aXNzX2ZhY3NfY2QxOSwgZG8ucHJpbnQgPSBGQUxTRSlcblBDSGVhdG1hcChvYmplY3QgPSB0aXNzX2ZhY3NfY2QxOSwgcGMudXNlID0gMTozLCBjZWxscy51c2UgPSA1MDAsIGRvLmJhbGFuY2VkID0gVFJVRSwgbGFiZWwuY29sdW1ucyA9IEZBTFNFLCBudW0uZ2VuZXMgPSA4KVxuYGBgXG5gYGAifQ== -->
+<p><code>r</code>r tiss_facs_cd19 &lt;- RunPCA(object = tiss_facs_cd19, do.print = FALSE) tiss_facs_cd19 &lt;- ProjectPCA(object = tiss_facs_cd19, do.print = FALSE) PCHeatmap(object = tiss_facs_cd19, pc.use = 1:3, cells.use = 500, do.balanced = TRUE, label.columns = FALSE, num.genes = 8)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuUENFbGJvd1Bsb3Qob2JqZWN0ID0gdGlzc19mYWNzX2NkMTkpXG5gYGAifQ== -->
-<pre class="r"><code>PCElbowPlot(object = tiss_facs_cd19)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuUENFbGJvd1Bsb3Qob2JqZWN0ID0gdGlzc19mYWNzX2NkMTkpXG5gYGBcbmBgYCJ9 -->
+<p><code>r</code>r PCElbowPlot(object = tiss_facs_cd19)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBTZXQgbnVtYmVyIG9mIHByaW5jaXBhbCBjb21wb25lbnRzLlxuc3ViLm4ucGNzID0gN1xuYGBgIn0= -->
-<pre class="r"><code># Set number of principal components.
-sub.n.pcs = 7</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuIyBTZXQgbnVtYmVyIG9mIHByaW5jaXBhbCBjb21wb25lbnRzLlxuc3ViLm4ucGNzID0gN1xuYGBgXG5gYGAifQ== -->
+<p><code>r</code>r # Set number of principal components. sub.n.pcs = 7</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -290,35 +287,29 @@ sub.n.pcs = 7</code></pre>
 <p>For the top-level clustering, aim to under-cluster instead of over-cluster. It will be easy to subset groups and further analyze them below.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBTZXQgcmVzb2x1dGlvblxuc3ViLnJlcy51c2VkIDwtIC4xXG5cbnRpc3NfZmFjc19jZDE5IDwtIEZpbmRDbHVzdGVycyhvYmplY3QgPSB0aXNzX2ZhY3NfY2QxOSwgcmVkdWN0aW9uLnR5cGUgPSBcInBjYVwiLCBkaW1zLnVzZSA9IDE6c3ViLm4ucGNzLFxuICAgIHJlc29sdXRpb24gPSBzdWIucmVzLnVzZWQsIHByaW50Lm91dHB1dCA9IDAsIHNhdmUuU05OID0gVFJVRSlcblxuIyBJZiBjZWxscyBhcmUgdG9vIHNwcmVhZCBvdXQsIHlvdSBjYW4gcmFpc2UgdGhlIHBlcnBsZXhpdHkuIElmIHlvdSBoYXZlIGZldyBjZWxscywgdHJ5IGEgbG93ZXIgcGVycGxleGl0eSAoYnV0IG5ldmVyIGxlc3MgdGhhbiAxMCkuXG50aXNzX2ZhY3NfY2QxOSA8LSBSdW5UU05FKG9iamVjdCA9IHRpc3NfZmFjc19jZDE5LCBkaW1zLnVzZSA9IDE6bi5wY3MsIHNlZWQudXNlID0gMTAsIHBlcnBsZXhpdHk9MzApXG5gYGAifQ== -->
-<pre class="r"><code># Set resolution
-sub.res.used &lt;- .1
-
-tiss_facs_cd19 &lt;- FindClusters(object = tiss_facs_cd19, reduction.type = &quot;pca&quot;, dims.use = 1:sub.n.pcs,
-    resolution = sub.res.used, print.output = 0, save.SNN = TRUE)
-
-# If cells are too spread out, you can raise the perplexity. If you have few cells, try a lower perplexity (but never less than 10).
-tiss_facs_cd19 &lt;- RunTSNE(object = tiss_facs_cd19, dims.use = 1:n.pcs, seed.use = 10, perplexity=30)</code></pre>
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuVFNORVBsb3QodGlzc19mYWNzX2NkMTkpXG5UU05FUGxvdCh0aXNzX2ZhY3NfY2QxOSwgZ3JvdXAuYnkgPSAndGlzc3VlJylcblRTTkVQbG90KHRpc3NfZmFjc19jZDE5LCBncm91cC5ieSA9ICdjZWxsX29udG9sb2d5X2NsYXNzJylcblRTTkVQbG90KHRpc3NfZmFjc19jZDE5LCBncm91cC5ieSA9ICdtb3VzZS5zZXgnKVxuVFNORVBsb3QodGlzc19mYWNzX2NkMTksIGdyb3VwLmJ5ID0gJ21vdXNlLmlkJylcbiMgVFNORVBsb3QodGlzc19mYWNzX2NkMTksIGdyb3VwLmJ5ID0gJ3BsYXRlLmJhcmNvZGUnKVxuYGBgXG5gYGAifQ== -->
+<p><code>r</code>r TSNEPlot(tiss_facs_cd19) TSNEPlot(tiss_facs_cd19, group.by = ‘tissue’) TSNEPlot(tiss_facs_cd19, group.by = ‘cell_ontology_class’) TSNEPlot(tiss_facs_cd19, group.by = ‘mouse.sex’) TSNEPlot(tiss_facs_cd19, group.by = ‘mouse.id’) # TSNEPlot(tiss_facs_cd19, group.by = ‘plate.barcode’)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuVFNORVBsb3QodGlzc19mYWNzX2NkMTkpXG5UU05FUGxvdCh0aXNzX2ZhY3NfY2QxOSwgZ3JvdXAuYnkgPSAndGlzc3VlJylcblRTTkVQbG90KHRpc3NfZmFjc19jZDE5LCBncm91cC5ieSA9ICdjZWxsX29udG9sb2d5X2NsYXNzJylcblRTTkVQbG90KHRpc3NfZmFjc19jZDE5LCBncm91cC5ieSA9ICdtb3VzZS5zZXgnKVxuVFNORVBsb3QodGlzc19mYWNzX2NkMTksIGdyb3VwLmJ5ID0gJ21vdXNlLmlkJylcbiMgVFNORVBsb3QodGlzc19mYWNzX2NkMTksIGdyb3VwLmJ5ID0gJ3BsYXRlLmJhcmNvZGUnKVxuYGBgIn0= -->
-<pre class="r"><code>TSNEPlot(tiss_facs_cd19)
-TSNEPlot(tiss_facs_cd19, group.by = 'tissue')
-TSNEPlot(tiss_facs_cd19, group.by = 'cell_ontology_class')
-TSNEPlot(tiss_facs_cd19, group.by = 'mouse.sex')
-TSNEPlot(tiss_facs_cd19, group.by = 'mouse.id')
-# TSNEPlot(tiss_facs_cd19, group.by = 'plate.barcode')</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxudGFibGUodGlzc19mYWNzX2NkMTlAbWV0YS5kYXRhJGNlbGxfb250b2xvZ3lfY2xhc3MsIHRpc3NfZmFjc19jZDE5QGlkZW50KVxuYGBgXG5gYGAifQ== -->
+<p><code>r</code>r table(<a href="mailto:tiss_facs_cd19@meta.data$cell_ontology_class">tiss_facs_cd19@meta.data$cell_ontology_class</a>, <a href="mailto:tiss_facs_cd19@ident">tiss_facs_cd19@ident</a>)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGlzc19mYWNzX2NkMTkgPSBCdWlsZENsdXN0ZXJUcmVlKHRpc3NfZmFjc19jZDE5KVxuUGxvdENsdXN0ZXJUcmVlKHRpc3NfZmFjc19jZDE5KVxuYGBgIn0= -->
-<pre class="r"><code>tiss_facs_cd19 = BuildClusterTree(tiss_facs_cd19)
-PlotClusterTree(tiss_facs_cd19)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxudGlzc19mYWNzX2NkMTkgPSBCdWlsZENsdXN0ZXJUcmVlKHRpc3NfZmFjc19jZDE5KVxuUGxvdENsdXN0ZXJUcmVlKHRpc3NfZmFjc19jZDE5KVxuYGBgXG5gYGAifQ== -->
+<p><code>r</code>r tiss_facs_cd19 = BuildClusterTree(tiss_facs_cd19) PlotClusterTree(tiss_facs_cd19)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -327,8 +318,9 @@ PlotClusterTree(tiss_facs_cd19)</code></pre>
 <h2>Save cluster identities</h2>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGlzc19mYWNzX2NkMTlAbWV0YS5kYXRhWywncGNhLmNsdXN0ZXIuaWRzJ10gPSBhcy5udW1lcmljKHRpc3NfZmFjc19jZDE5QGlkZW50KVxuYGBgIn0= -->
-<pre class="r"><code>tiss_facs_cd19@meta.data[,'pca.cluster.ids'] = as.numeric(tiss_facs_cd19@ident)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxudGlzc19mYWNzX2NkMTlAbWV0YS5kYXRhWywncGNhLmNsdXN0ZXIuaWRzJ10gPSBhcy5udW1lcmljKHRpc3NfZmFjc19jZDE5QGlkZW50KVxuYGBgXG5gYGAifQ== -->
+<p><code>r</code>r <a href="mailto:tiss_facs_cd19@meta.data">tiss_facs_cd19@meta.data</a>[,‘pca.cluster.ids’] = as.numeric(<a href="mailto:tiss_facs_cd19@ident">tiss_facs_cd19@ident</a>)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -337,15 +329,16 @@ PlotClusterTree(tiss_facs_cd19)</code></pre>
 <h2>Save the Robj for later</h2>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2F2ZSh0aXNzX2ZhY3NfY2QxOSwgZmlsZSA9IGhlcmUoJ3ZpZ25ldHRlcycsICdiY2VsbHMnLCAnZmFjc19jZDE5LlJvYmonKSlcbmBgYCJ9 -->
-<pre class="r"><code>save(tiss_facs_cd19, file = here('vignettes', 'bcells', 'facs_cd19.Robj'))</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuc2F2ZSh0aXNzX2ZhY3NfY2QxOSwgZmlsZSA9IGhlcmUoJ3ZpZ25ldHRlcycsICdpbW11bmUnLCAnZmFjc19jZDE5LlJvYmonKSlcbmBgYFxuYGBgIn0= -->
+<p><code>r</code>r save(tiss_facs_cd19, file = here(‘vignettes’, ‘immune’, ‘facs_cd19.Robj’))</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 </div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiQiBDZWxscyBGQUNTIgpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sKLS0tCgpgYGB7ciBzZXR1cCwgaW5jbHVkZT1GQUxTRX0Ka25pdHI6Om9wdHNfY2h1bmskc2V0KGVjaG8gPSBUUlVFKQpgYGAKCiMjIExvYWQgRkFDUyBCIGNlbGxzCmBgYHtyfQpsaWJyYXJ5KFNldXJhdCkKbGlicmFyeSh0aWR5dmVyc2UpCmxpYnJhcnkoaGVyZSkKCmxvYWQoaGVyZSgndmlnbmV0dGVzJywgJ2JjZWxscycsICdmYWNzX2JjZWxscy5Sb2JqJykpCmBgYAoKClJ1biBQcmluY2lwYWwgQ29tcG9uZW50IEFuYWx5c2lzLgpgYGB7ciwgZmlnLmhlaWdodD00LCBmaWcud2lkdGg9OH0KdGlzc19mYWNzX2JjZWxscyA8LSBSdW5QQ0Eob2JqZWN0ID0gdGlzc19mYWNzX2JjZWxscywgZG8ucHJpbnQgPSBGQUxTRSkKdGlzc19mYWNzX2JjZWxscyA8LSBQcm9qZWN0UENBKG9iamVjdCA9IHRpc3NfZmFjc19iY2VsbHMsIGRvLnByaW50ID0gRkFMU0UpClBDSGVhdG1hcChvYmplY3QgPSB0aXNzX2ZhY3NfYmNlbGxzLCBwYy51c2UgPSAxOjMsIGNlbGxzLnVzZSA9IDUwMCwgZG8uYmFsYW5jZWQgPSBUUlVFLCBsYWJlbC5jb2x1bW5zID0gRkFMU0UsIG51bS5nZW5lcyA9IDgpCmBgYAoKTGF0ZXIgb24gKGluIEZpbmRDbHVzdGVycyBhbmQgVFNORSkgeW91IHdpbGwgcGljayBhIG51bWJlciBvZiBwcmluY2lwYWwgY29tcG9uZW50cyB0byB1c2UuIFRoaXMgaGFzIHRoZSBlZmZlY3Qgb2Yga2VlcGluZyB0aGUgbWFqb3IgZGlyZWN0aW9ucyBvZiB2YXJpYXRpb24gaW4gdGhlIGRhdGEgYW5kLCBpZGVhbGx5LCBzdXByZXNzaW5nIG5vaXNlLiBUaGVyZSBpcyBubyBjb3JyZWN0IGFuc3dlciB0byB0aGUgbnVtYmVyIHRvIHVzZSwgYnV0IGEgZGVjZW50IHJ1bGUgb2YgdGh1bWIgaXMgdG8gZ28gdW50aWwgdGhlIHBsb3QgcGxhdGVhdXMuCgpgYGB7cn0KUENFbGJvd1Bsb3Qob2JqZWN0ID0gdGlzc19mYWNzX2JjZWxscykKYGBgCgpDaG9vc2UgdGhlIG51bWJlciBvZiBwcmluY2lwYWwgY29tcG9uZW50cyB0byB1c2UuCmBgYHtyfQojIFNldCBudW1iZXIgb2YgcHJpbmNpcGFsIGNvbXBvbmVudHMuCm4ucGNzID0gOQpgYGAKClRoZSBjbHVzdGVyaW5nIGlzIHBlcmZvcm1lZCBiYXNlZCBvbiBhIG5lYXJlc3QgbmVpZ2hib3JzIGdyYXBoLiBDZWxscyB0aGF0IGhhdmUgc2ltaWxhciBleHByZXNzaW9uIHdpbGwgYmUgam9pbmVkIHRvZ2V0aGVyLiBUaGUgTG91dmFpbiBhbGdvcml0aG0gbG9va3MgZm9yIGdyb3VwcyBvZiBjZWxscyB3aXRoIGhpZ2ggbW9kdWxhcml0eS0tbW9yZSBjb25uZWN0aW9ucyB3aXRoaW4gdGhlIGdyb3VwIHRoYW4gYmV0d2VlbiBncm91cHMuIFRoZSByZXNvbHV0aW9uIHBhcmFtZXRlciBkZXRlcm1pbmVzIHRoZSBzY2FsZS4uLmhpZ2hlciByZXNvbHV0aW9uIHdpbGwgZ2l2ZSBtb3JlIGNsdXN0ZXJzLCBsb3dlciByZXNvbHV0aW9uIHdpbGwgZ2l2ZSBmZXdlci4KCkZvciB0aGUgdG9wLWxldmVsIGNsdXN0ZXJpbmcsIGFpbSB0byB1bmRlci1jbHVzdGVyIGluc3RlYWQgb2Ygb3Zlci1jbHVzdGVyLiBJdCB3aWxsIGJlIGVhc3kgdG8gc3Vic2V0IGdyb3VwcyBhbmQgZnVydGhlciBhbmFseXplIHRoZW0gYmVsb3cuCgpgYGB7cn0KIyBTZXQgcmVzb2x1dGlvbgpyZXMudXNlZCA8LSAuMQoKdGlzc19mYWNzX2JjZWxscyA8LSBGaW5kQ2x1c3RlcnMob2JqZWN0ID0gdGlzc19mYWNzX2JjZWxscywgcmVkdWN0aW9uLnR5cGUgPSAicGNhIiwgZGltcy51c2UgPSAxOm4ucGNzLAogICAgcmVzb2x1dGlvbiA9IHJlcy51c2VkLCBwcmludC5vdXRwdXQgPSAwLCBzYXZlLlNOTiA9IFRSVUUpCmBgYAoKVG8gdmlzdWFsaXplCmBgYHtyfQojIElmIGNlbGxzIGFyZSB0b28gc3ByZWFkIG91dCwgeW91IGNhbiByYWlzZSB0aGUgcGVycGxleGl0eS4gSWYgeW91IGhhdmUgZmV3IGNlbGxzLCB0cnkgYSBsb3dlciBwZXJwbGV4aXR5IChidXQgbmV2ZXIgbGVzcyB0aGFuIDEwKS4KdGlzc19mYWNzX2JjZWxscyA8LSBSdW5UU05FKG9iamVjdCA9IHRpc3NfZmFjc19iY2VsbHMsIGRpbXMudXNlID0gMTpuLnBjcywgc2VlZC51c2UgPSAxMCwgcGVycGxleGl0eT0zMCkKYGBgCgpgYGB7cn0KVFNORVBsb3QodGlzc19mYWNzX2JjZWxscykKVFNORVBsb3QodGlzc19mYWNzX2JjZWxscywgZ3JvdXAuYnkgPSAndGlzc3VlJykKVFNORVBsb3QodGlzc19mYWNzX2JjZWxscywgZ3JvdXAuYnkgPSAnY2VsbF9vbnRvbG9neV9jbGFzcycpClRTTkVQbG90KHRpc3NfZmFjc19iY2VsbHMsIGdyb3VwLmJ5ID0gJ21vdXNlLnNleCcpClRTTkVQbG90KHRpc3NfZmFjc19iY2VsbHMsIGdyb3VwLmJ5ID0gJ21vdXNlLmlkJykKVFNORVBsb3QodGlzc19mYWNzX2JjZWxscywgZ3JvdXAuYnkgPSAncGxhdGUuYmFyY29kZScpCmBgYAoKYGBge3J9CkZlYXR1cmVQbG90KHRpc3NfZmFjc19iY2VsbHMsIGMoJ0NkMTknLCAnUHRwcmMnKSkKYGBgCgoKYGBge3J9CnRpc3NfZmFjc19jZDE5ID0gU3Vic2V0RGF0YShvYmplY3QgPSB0aXNzX2ZhY3NfYmNlbGxzLCBpZGVudC51c2UgPSBjKDAsIDEsIDMsIDQsIDUpKQp0aXNzX2ZhY3NfY2QxOSA9IHByb2Nlc3NfdGlzc3VlKHRpc3NfZmFjc19jZDE5LCBzY2FsZT0xZTYpCmBgYAoKClJ1biBQcmluY2lwYWwgQ29tcG9uZW50IEFuYWx5c2lzLgpgYGB7ciwgZmlnLmhlaWdodD00LCBmaWcud2lkdGg9OH0KdGlzc19mYWNzX2NkMTkgPC0gUnVuUENBKG9iamVjdCA9IHRpc3NfZmFjc19jZDE5LCBkby5wcmludCA9IEZBTFNFKQp0aXNzX2ZhY3NfY2QxOSA8LSBQcm9qZWN0UENBKG9iamVjdCA9IHRpc3NfZmFjc19jZDE5LCBkby5wcmludCA9IEZBTFNFKQpQQ0hlYXRtYXAob2JqZWN0ID0gdGlzc19mYWNzX2NkMTksIHBjLnVzZSA9IDE6MywgY2VsbHMudXNlID0gNTAwLCBkby5iYWxhbmNlZCA9IFRSVUUsIGxhYmVsLmNvbHVtbnMgPSBGQUxTRSwgbnVtLmdlbmVzID0gOCkKYGBgCgpgYGB7cn0KUENFbGJvd1Bsb3Qob2JqZWN0ID0gdGlzc19mYWNzX2NkMTkpCmBgYApgYGB7cn0KIyBTZXQgbnVtYmVyIG9mIHByaW5jaXBhbCBjb21wb25lbnRzLgpzdWIubi5wY3MgPSA3CmBgYAoKVGhlIGNsdXN0ZXJpbmcgaXMgcGVyZm9ybWVkIGJhc2VkIG9uIGEgbmVhcmVzdCBuZWlnaGJvcnMgZ3JhcGguIENlbGxzIHRoYXQgaGF2ZSBzaW1pbGFyIGV4cHJlc3Npb24gd2lsbCBiZSBqb2luZWQgdG9nZXRoZXIuIFRoZSBMb3V2YWluIGFsZ29yaXRobSBsb29rcyBmb3IgZ3JvdXBzIG9mIGNlbGxzIHdpdGggaGlnaCBtb2R1bGFyaXR5LS1tb3JlIGNvbm5lY3Rpb25zIHdpdGhpbiB0aGUgZ3JvdXAgdGhhbiBiZXR3ZWVuIGdyb3Vwcy4gVGhlIHJlc29sdXRpb24gcGFyYW1ldGVyIGRldGVybWluZXMgdGhlIHNjYWxlLi4uaGlnaGVyIHJlc29sdXRpb24gd2lsbCBnaXZlIG1vcmUgY2x1c3RlcnMsIGxvd2VyIHJlc29sdXRpb24gd2lsbCBnaXZlIGZld2VyLgoKRm9yIHRoZSB0b3AtbGV2ZWwgY2x1c3RlcmluZywgYWltIHRvIHVuZGVyLWNsdXN0ZXIgaW5zdGVhZCBvZiBvdmVyLWNsdXN0ZXIuIEl0IHdpbGwgYmUgZWFzeSB0byBzdWJzZXQgZ3JvdXBzIGFuZCBmdXJ0aGVyIGFuYWx5emUgdGhlbSBiZWxvdy4KCmBgYHtyfQojIFNldCByZXNvbHV0aW9uCnN1Yi5yZXMudXNlZCA8LSAuMQoKdGlzc19mYWNzX2NkMTkgPC0gRmluZENsdXN0ZXJzKG9iamVjdCA9IHRpc3NfZmFjc19jZDE5LCByZWR1Y3Rpb24udHlwZSA9ICJwY2EiLCBkaW1zLnVzZSA9IDE6c3ViLm4ucGNzLAogICAgcmVzb2x1dGlvbiA9IHN1Yi5yZXMudXNlZCwgcHJpbnQub3V0cHV0ID0gMCwgc2F2ZS5TTk4gPSBUUlVFKQoKIyBJZiBjZWxscyBhcmUgdG9vIHNwcmVhZCBvdXQsIHlvdSBjYW4gcmFpc2UgdGhlIHBlcnBsZXhpdHkuIElmIHlvdSBoYXZlIGZldyBjZWxscywgdHJ5IGEgbG93ZXIgcGVycGxleGl0eSAoYnV0IG5ldmVyIGxlc3MgdGhhbiAxMCkuCnRpc3NfZmFjc19jZDE5IDwtIFJ1blRTTkUob2JqZWN0ID0gdGlzc19mYWNzX2NkMTksIGRpbXMudXNlID0gMTpuLnBjcywgc2VlZC51c2UgPSAxMCwgcGVycGxleGl0eT0zMCkKYGBgCgpgYGB7cn0KVFNORVBsb3QodGlzc19mYWNzX2NkMTkpClRTTkVQbG90KHRpc3NfZmFjc19jZDE5LCBncm91cC5ieSA9ICd0aXNzdWUnKQpUU05FUGxvdCh0aXNzX2ZhY3NfY2QxOSwgZ3JvdXAuYnkgPSAnY2VsbF9vbnRvbG9neV9jbGFzcycpClRTTkVQbG90KHRpc3NfZmFjc19jZDE5LCBncm91cC5ieSA9ICdtb3VzZS5zZXgnKQpUU05FUGxvdCh0aXNzX2ZhY3NfY2QxOSwgZ3JvdXAuYnkgPSAnbW91c2UuaWQnKQojIFRTTkVQbG90KHRpc3NfZmFjc19jZDE5LCBncm91cC5ieSA9ICdwbGF0ZS5iYXJjb2RlJykKYGBgCgoKYGBge3J9CnRpc3NfZmFjc19jZDE5ID0gQnVpbGRDbHVzdGVyVHJlZSh0aXNzX2ZhY3NfY2QxOSkKUGxvdENsdXN0ZXJUcmVlKHRpc3NfZmFjc19jZDE5KQpgYGAKCgoKIyMgU2F2ZSBjbHVzdGVyIGlkZW50aXRpZXMKCmBgYHtyfQp0aXNzX2ZhY3NfY2QxOUBtZXRhLmRhdGFbLCdwY2EuY2x1c3Rlci5pZHMnXSA9IGFzLm51bWVyaWModGlzc19mYWNzX2NkMTlAaWRlbnQpCmBgYAoKCgojIyBTYXZlIHRoZSBSb2JqIGZvciBsYXRlcgoKYGBge3J9CnNhdmUodGlzc19mYWNzX2NkMTksIGZpbGUgPSBoZXJlKCd2aWduZXR0ZXMnLCAnYmNlbGxzJywgJ2ZhY3NfY2QxOS5Sb2JqJykpCmBgYAoK</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiQiBDZWxscyBGQUNTIgpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sKLS0tCgpgYGB7ciBzZXR1cCwgaW5jbHVkZT1GQUxTRX0Ka25pdHI6Om9wdHNfY2h1bmskc2V0KGVjaG8gPSBUUlVFKQpgYGAKCiMjIExvYWQgRkFDUyBCIGNlbGxzCmBgYHtyfQpsaWJyYXJ5KFNldXJhdCkKbGlicmFyeSh0aWR5dmVyc2UpCmxpYnJhcnkoaGVyZSkKCmxvYWQoaGVyZSgndmlnbmV0dGVzJywgJ2JjZWxscycsICdmYWNzX2ltbXVuZS5Sb2JqJykpCmBgYAoKClJ1biBQcmluY2lwYWwgQ29tcG9uZW50IEFuYWx5c2lzLgpgYGB7ciwgZmlnLmhlaWdodD00LCBmaWcud2lkdGg9OH0KdGlzc19mYWNzX2ltbXVuZSA8LSBSdW5QQ0Eob2JqZWN0ID0gdGlzc19mYWNzX2ltbXVuZSwgZG8ucHJpbnQgPSBGQUxTRSkKdGlzc19mYWNzX2ltbXVuZSA8LSBQcm9qZWN0UENBKG9iamVjdCA9IHRpc3NfZmFjc19pbW11bmUsIGRvLnByaW50ID0gRkFMU0UpClBDSGVhdG1hcChvYmplY3QgPSB0aXNzX2ZhY3NfaW1tdW5lLCBwYy51c2UgPSAxOjMsIGNlbGxzLnVzZSA9IDUwMCwgZG8uYmFsYW5jZWQgPSBUUlVFLCBsYWJlbC5jb2x1bW5zID0gRkFMU0UsIG51bS5nZW5lcyA9IDgpCmBgYAoKTGF0ZXIgb24gKGluIEZpbmRDbHVzdGVycyBhbmQgVFNORSkgeW91IHdpbGwgcGljayBhIG51bWJlciBvZiBwcmluY2lwYWwgY29tcG9uZW50cyB0byB1c2UuIFRoaXMgaGFzIHRoZSBlZmZlY3Qgb2Yga2VlcGluZyB0aGUgbWFqb3IgZGlyZWN0aW9ucyBvZiB2YXJpYXRpb24gaW4gdGhlIGRhdGEgYW5kLCBpZGVhbGx5LCBzdXByZXNzaW5nIG5vaXNlLiBUaGVyZSBpcyBubyBjb3JyZWN0IGFuc3dlciB0byB0aGUgbnVtYmVyIHRvIHVzZSwgYnV0IGEgZGVjZW50IHJ1bGUgb2YgdGh1bWIgaXMgdG8gZ28gdW50aWwgdGhlIHBsb3QgcGxhdGVhdXMuCgpgYGB7cn0KUENFbGJvd1Bsb3Qob2JqZWN0ID0gdGlzc19mYWNzX2ltbXVuZSkKYGBgCgpDaG9vc2UgdGhlIG51bWJlciBvZiBwcmluY2lwYWwgY29tcG9uZW50cyB0byB1c2UuCmBgYHtyfQojIFNldCBudW1iZXIgb2YgcHJpbmNpcGFsIGNvbXBvbmVudHMuCm4ucGNzID0gOQpgYGAKClRoZSBjbHVzdGVyaW5nIGlzIHBlcmZvcm1lZCBiYXNlZCBvbiBhIG5lYXJlc3QgbmVpZ2hib3JzIGdyYXBoLiBDZWxscyB0aGF0IGhhdmUgc2ltaWxhciBleHByZXNzaW9uIHdpbGwgYmUgam9pbmVkIHRvZ2V0aGVyLiBUaGUgTG91dmFpbiBhbGdvcml0aG0gbG9va3MgZm9yIGdyb3VwcyBvZiBjZWxscyB3aXRoIGhpZ2ggbW9kdWxhcml0eS0tbW9yZSBjb25uZWN0aW9ucyB3aXRoaW4gdGhlIGdyb3VwIHRoYW4gYmV0d2VlbiBncm91cHMuIFRoZSByZXNvbHV0aW9uIHBhcmFtZXRlciBkZXRlcm1pbmVzIHRoZSBzY2FsZS4uLmhpZ2hlciByZXNvbHV0aW9uIHdpbGwgZ2l2ZSBtb3JlIGNsdXN0ZXJzLCBsb3dlciByZXNvbHV0aW9uIHdpbGwgZ2l2ZSBmZXdlci4KCkZvciB0aGUgdG9wLWxldmVsIGNsdXN0ZXJpbmcsIGFpbSB0byB1bmRlci1jbHVzdGVyIGluc3RlYWQgb2Ygb3Zlci1jbHVzdGVyLiBJdCB3aWxsIGJlIGVhc3kgdG8gc3Vic2V0IGdyb3VwcyBhbmQgZnVydGhlciBhbmFseXplIHRoZW0gYmVsb3cuCgpgYGB7cn0KIyBTZXQgcmVzb2x1dGlvbgpyZXMudXNlZCA8LSAuMQoKdGlzc19mYWNzX2ltbXVuZSA8LSBGaW5kQ2x1c3RlcnMob2JqZWN0ID0gdGlzc19mYWNzX2ltbXVuZSwgcmVkdWN0aW9uLnR5cGUgPSAicGNhIiwgZGltcy51c2UgPSAxOm4ucGNzLAogICAgcmVzb2x1dGlvbiA9IHJlcy51c2VkLCBwcmludC5vdXRwdXQgPSAwLCBzYXZlLlNOTiA9IFRSVUUpCmBgYAoKVG8gdmlzdWFsaXplCmBgYHtyfQojIElmIGNlbGxzIGFyZSB0b28gc3ByZWFkIG91dCwgeW91IGNhbiByYWlzZSB0aGUgcGVycGxleGl0eS4gSWYgeW91IGhhdmUgZmV3IGNlbGxzLCB0cnkgYSBsb3dlciBwZXJwbGV4aXR5IChidXQgbmV2ZXIgbGVzcyB0aGFuIDEwKS4KdGlzc19mYWNzX2ltbXVuZSA8LSBSdW5UU05FKG9iamVjdCA9IHRpc3NfZmFjc19pbW11bmUsIGRpbXMudXNlID0gMTpuLnBjcywgc2VlZC51c2UgPSAxMCwgcGVycGxleGl0eT0zMCkKYGBgCgpgYGB7cn0KVFNORVBsb3QodGlzc19mYWNzX2ltbXVuZSkKVFNORVBsb3QodGlzc19mYWNzX2ltbXVuZSwgZ3JvdXAuYnkgPSAndGlzc3VlJykKVFNORVBsb3QodGlzc19mYWNzX2ltbXVuZSwgZ3JvdXAuYnkgPSAnY2VsbF9vbnRvbG9neV9jbGFzcycpClRTTkVQbG90KHRpc3NfZmFjc19pbW11bmUsIGdyb3VwLmJ5ID0gJ21vdXNlLnNleCcpClRTTkVQbG90KHRpc3NfZmFjc19pbW11bmUsIGdyb3VwLmJ5ID0gJ21vdXNlLmlkJykKVFNORVBsb3QodGlzc19mYWNzX2ltbXVuZSwgZ3JvdXAuYnkgPSAncGxhdGUuYmFyY29kZScpCmBgYAoKYGBge3J9CnRhYmxlKHRpc3NfZmFjc19pbW11bmVAbWV0YS5kYXRhJGNlbGxfb250b2xvZ3lfY2xhc3MsIHRpc3NfZmFjc19pbW11bmVAaWRlbnQpCmBgYAoKCmBgYHtyfQpnZW5lc190b19jaGVjaz0gYygnQ2QxOScsICdQdHByYycsICdDZDc5YScpCgpGZWF0dXJlUGxvdCh0aXNzX2ZhY3NfaW1tdW5lLCBnZW5lc190b19jaGVjaykKUmlkZ2VQbG90KHRpc3NfZmFjc19pbW11bmUsIGdlbmVzX3RvX2NoZWNrKQpEb3RQbG90KHRpc3NfZmFjc19pbW11bmUsIGdlbmVzX3RvX2NoZWNrKQpgYGAKCgpgYGB7cn0KdGlzc19mYWNzX2NkMTkgPSBTdWJzZXREYXRhKG9iamVjdCA9IHRpc3NfZmFjc19pbW11bmUsIGlkZW50LnVzZSA9IGMoMCwgMikpCnRpc3NfZmFjc19jZDE5ID0gcHJvY2Vzc190aXNzdWUodGlzc19mYWNzX2NkMTksIHNjYWxlPTFlNikKYGBgCgoKUnVuIFByaW5jaXBhbCBDb21wb25lbnQgQW5hbHlzaXMuCmBgYHtyLCBmaWcuaGVpZ2h0PTQsIGZpZy53aWR0aD04fQp0aXNzX2ZhY3NfY2QxOSA8LSBSdW5QQ0Eob2JqZWN0ID0gdGlzc19mYWNzX2NkMTksIGRvLnByaW50ID0gRkFMU0UpCnRpc3NfZmFjc19jZDE5IDwtIFByb2plY3RQQ0Eob2JqZWN0ID0gdGlzc19mYWNzX2NkMTksIGRvLnByaW50ID0gRkFMU0UpClBDSGVhdG1hcChvYmplY3QgPSB0aXNzX2ZhY3NfY2QxOSwgcGMudXNlID0gMTozLCBjZWxscy51c2UgPSA1MDAsIGRvLmJhbGFuY2VkID0gVFJVRSwgbGFiZWwuY29sdW1ucyA9IEZBTFNFLCBudW0uZ2VuZXMgPSA4KQpgYGAKCmBgYHtyfQpQQ0VsYm93UGxvdChvYmplY3QgPSB0aXNzX2ZhY3NfY2QxOSkKYGBgCmBgYHtyfQojIFNldCBudW1iZXIgb2YgcHJpbmNpcGFsIGNvbXBvbmVudHMuCnN1Yi5uLnBjcyA9IDcKYGBgCgpUaGUgY2x1c3RlcmluZyBpcyBwZXJmb3JtZWQgYmFzZWQgb24gYSBuZWFyZXN0IG5laWdoYm9ycyBncmFwaC4gQ2VsbHMgdGhhdCBoYXZlIHNpbWlsYXIgZXhwcmVzc2lvbiB3aWxsIGJlIGpvaW5lZCB0b2dldGhlci4gVGhlIExvdXZhaW4gYWxnb3JpdGhtIGxvb2tzIGZvciBncm91cHMgb2YgY2VsbHMgd2l0aCBoaWdoIG1vZHVsYXJpdHktLW1vcmUgY29ubmVjdGlvbnMgd2l0aGluIHRoZSBncm91cCB0aGFuIGJldHdlZW4gZ3JvdXBzLiBUaGUgcmVzb2x1dGlvbiBwYXJhbWV0ZXIgZGV0ZXJtaW5lcyB0aGUgc2NhbGUuLi5oaWdoZXIgcmVzb2x1dGlvbiB3aWxsIGdpdmUgbW9yZSBjbHVzdGVycywgbG93ZXIgcmVzb2x1dGlvbiB3aWxsIGdpdmUgZmV3ZXIuCgpGb3IgdGhlIHRvcC1sZXZlbCBjbHVzdGVyaW5nLCBhaW0gdG8gdW5kZXItY2x1c3RlciBpbnN0ZWFkIG9mIG92ZXItY2x1c3Rlci4gSXQgd2lsbCBiZSBlYXN5IHRvIHN1YnNldCBncm91cHMgYW5kIGZ1cnRoZXIgYW5hbHl6ZSB0aGVtIGJlbG93LgoKYGBge3J9CiMgU2V0IHJlc29sdXRpb24Kc3ViLnJlcy51c2VkIDwtIC4xCgp0aXNzX2ZhY3NfY2QxOSA8LSBGaW5kQ2x1c3RlcnMob2JqZWN0ID0gdGlzc19mYWNzX2NkMTksIHJlZHVjdGlvbi50eXBlID0gInBjYSIsIGRpbXMudXNlID0gMTpzdWIubi5wY3MsCiAgICByZXNvbHV0aW9uID0gc3ViLnJlcy51c2VkLCBwcmludC5vdXRwdXQgPSAwLCBzYXZlLlNOTiA9IFRSVUUpCgojIElmIGNlbGxzIGFyZSB0b28gc3ByZWFkIG91dCwgeW91IGNhbiByYWlzZSB0aGUgcGVycGxleGl0eS4gSWYgeW91IGhhdmUgZmV3IGNlbGxzLCB0cnkgYSBsb3dlciBwZXJwbGV4aXR5IChidXQgbmV2ZXIgbGVzcyB0aGFuIDEwKS4KdGlzc19mYWNzX2NkMTkgPC0gUnVuVFNORShvYmplY3QgPSB0aXNzX2ZhY3NfY2QxOSwgZGltcy51c2UgPSAxOm4ucGNzLCBzZWVkLnVzZSA9IDEwLCBwZXJwbGV4aXR5PTMwKQpgYGAKCmBgYHtyfQpUU05FUGxvdCh0aXNzX2ZhY3NfY2QxOSkKVFNORVBsb3QodGlzc19mYWNzX2NkMTksIGdyb3VwLmJ5ID0gJ3Rpc3N1ZScpClRTTkVQbG90KHRpc3NfZmFjc19jZDE5LCBncm91cC5ieSA9ICdjZWxsX29udG9sb2d5X2NsYXNzJykKVFNORVBsb3QodGlzc19mYWNzX2NkMTksIGdyb3VwLmJ5ID0gJ21vdXNlLnNleCcpClRTTkVQbG90KHRpc3NfZmFjc19jZDE5LCBncm91cC5ieSA9ICdtb3VzZS5pZCcpCiMgVFNORVBsb3QodGlzc19mYWNzX2NkMTksIGdyb3VwLmJ5ID0gJ3BsYXRlLmJhcmNvZGUnKQpgYGAKCmBgYHtyfQp0YWJsZSh0aXNzX2ZhY3NfY2QxOUBtZXRhLmRhdGEkY2VsbF9vbnRvbG9neV9jbGFzcywgdGlzc19mYWNzX2NkMTlAaWRlbnQpCmBgYAoKCgpgYGB7cn0KdGlzc19mYWNzX2NkMTkgPSBCdWlsZENsdXN0ZXJUcmVlKHRpc3NfZmFjc19jZDE5KQpQbG90Q2x1c3RlclRyZWUodGlzc19mYWNzX2NkMTkpCmBgYAoKCgojIyBTYXZlIGNsdXN0ZXIgaWRlbnRpdGllcwoKYGBge3J9CnRpc3NfZmFjc19jZDE5QG1ldGEuZGF0YVssJ3BjYS5jbHVzdGVyLmlkcyddID0gYXMubnVtZXJpYyh0aXNzX2ZhY3NfY2QxOUBpZGVudCkKYGBgCgoKCiMjIFNhdmUgdGhlIFJvYmogZm9yIGxhdGVyCgpgYGB7cn0Kc2F2ZSh0aXNzX2ZhY3NfY2QxOSwgZmlsZSA9IGhlcmUoJ3ZpZ25ldHRlcycsICdpbW11bmUnLCAnZmFjc19jZDE5LlJvYmonKSkKYGBgCgo=</div>
 
 
 

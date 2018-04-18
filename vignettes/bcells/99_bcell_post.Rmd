@@ -1,0 +1,23 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+In this post, we will analyze the differential expression of B cells in different compartments of the body. To do this, we will first grab all the cells that were annotated as immune. Since we used the [Cell Ontology](http://obofoundry.org/ontology/cl.html), this is easy as we can take any cells that were annotated as a "leukocyte" or descendant, as this encompasses all immune cells. In particular, B cells, which are [lymphoctes, are a descendant (child) of leukocytes](http://www.ontobee.org/ontology/CL?iri=http://purl.obolibrary.org/obo/CL_0000542). The cell ontology ID for [leukocyte](http://purl.obolibrary.org/obo/CL_0000738) is `CL:0000738`
+
+```{r}
+library(ontologyIndex)
+
+cell_ontology = get_ontology('https://raw.githubusercontent.com/obophenotype/cell-ontology/master/cl-basic.obo',
+                             extract_tags='everything')
+
+leukocyte_id = "CL:0000738"
+leukocyte_or_descendant = get_descendants(cell_ontology, roots=leukocyte_id)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

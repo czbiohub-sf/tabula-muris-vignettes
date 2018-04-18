@@ -15,6 +15,45 @@ find_markers <- function(tiss, annotation, min.cells = 50){
   return(tiss.markers)
 }
 
+create_seurat_object = function(raw.data, meta.data, method){
+  
+  if (method == 'droplet'){
+    scale = 1e4
+  } else {
+    scale = 1e6
+  }
+  
+  # Find ERCC's, compute the percent ERCC, and drop them from the raw data.
+  erccs <- grep(pattern = "^ERCC-", x = rownames(x = raw.data), value = TRUE)
+  percent.ercc <- Matrix::colSums(raw.data[erccs, ])/Matrix::colSums(raw.data)
+  ercc.index <- grep(pattern = "^ERCC-", x = rownames(x = raw.data), value = FALSE)
+  raw.data <- raw.data[-ercc.index,]
+  
+  # Create the Seurat object with all the data
+  tiss <- CreateSeuratObject(raw.data = raw.data, project = paste0('b_cells_', method))
+  tiss <- AddMetaData(object = tiss, meta.data)
+  tiss <- AddMetaData(object = tiss, percent.ercc, col.name = "percent.ercc")
+  
+  
+  # Calculate percent ribosomal genes.
+  ribo.genes <- grep(pattern = "^Rp[sl][[:digit:]]", x = rownames(x = tiss@data), value = TRUE)
+  percent.ribo <- Matrix::colSums(tiss@raw.data[ribo.genes, ])/Matrix::colSums(tiss@raw.data)
+  tiss <- AddMetaData(object = tiss, metadata = percent.ribo, col.name = "percent.ribo")
+  
+  if (method == 'facs'){
+    # Change default name for sums of counts from nUMI to nReads
+    colnames(tiss@meta.data)[colnames(tiss@meta.data) == 'nUMI'] <- 'nReads'
+    tiss <- FilterCells(object = tiss, subset.names = c("nGene", "nReads"), 
+                        low.thresholds = c(500, 50000))
+  } else {
+    tiss <- FilterCells(object = tiss, subset.names = c("nGene", "nUMI"), 
+                        low.thresholds = c(500, 1000))
+  }
+  
+  tiss <- process_tissue(tiss, scale)
+  return (tiss)
+}
+
 process_tissue = function(tiss, scale){
   tiss <- NormalizeData(object = tiss, scale.factor = scale)
   tiss <- ScaleData(object = tiss)

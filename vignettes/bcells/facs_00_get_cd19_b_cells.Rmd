@@ -13,21 +13,21 @@ library(Seurat)
 library(tidyverse)
 library(here)
 
-load(here('vignettes', 'bcells', 'facs_bcells.Robj'))
+load(here('vignettes', 'bcells', 'facs_immune.Robj'))
 ```
 
 
 Run Principal Component Analysis.
 ```{r, fig.height=4, fig.width=8}
-tiss_facs_bcells <- RunPCA(object = tiss_facs_bcells, do.print = FALSE)
-tiss_facs_bcells <- ProjectPCA(object = tiss_facs_bcells, do.print = FALSE)
-PCHeatmap(object = tiss_facs_bcells, pc.use = 1:3, cells.use = 500, do.balanced = TRUE, label.columns = FALSE, num.genes = 8)
+tiss_facs_immune <- RunPCA(object = tiss_facs_immune, do.print = FALSE)
+tiss_facs_immune <- ProjectPCA(object = tiss_facs_immune, do.print = FALSE)
+PCHeatmap(object = tiss_facs_immune, pc.use = 1:3, cells.use = 500, do.balanced = TRUE, label.columns = FALSE, num.genes = 8)
 ```
 
 Later on (in FindClusters and TSNE) you will pick a number of principal components to use. This has the effect of keeping the major directions of variation in the data and, ideally, supressing noise. There is no correct answer to the number to use, but a decent rule of thumb is to go until the plot plateaus.
 
 ```{r}
-PCElbowPlot(object = tiss_facs_bcells)
+PCElbowPlot(object = tiss_facs_immune)
 ```
 
 Choose the number of principal components to use.
@@ -44,32 +44,41 @@ For the top-level clustering, aim to under-cluster instead of over-cluster. It w
 # Set resolution
 res.used <- .1
 
-tiss_facs_bcells <- FindClusters(object = tiss_facs_bcells, reduction.type = "pca", dims.use = 1:n.pcs,
+tiss_facs_immune <- FindClusters(object = tiss_facs_immune, reduction.type = "pca", dims.use = 1:n.pcs,
     resolution = res.used, print.output = 0, save.SNN = TRUE)
 ```
 
 To visualize
 ```{r}
 # If cells are too spread out, you can raise the perplexity. If you have few cells, try a lower perplexity (but never less than 10).
-tiss_facs_bcells <- RunTSNE(object = tiss_facs_bcells, dims.use = 1:n.pcs, seed.use = 10, perplexity=30)
+tiss_facs_immune <- RunTSNE(object = tiss_facs_immune, dims.use = 1:n.pcs, seed.use = 10, perplexity=30)
 ```
 
 ```{r}
-TSNEPlot(tiss_facs_bcells)
-TSNEPlot(tiss_facs_bcells, group.by = 'tissue')
-TSNEPlot(tiss_facs_bcells, group.by = 'cell_ontology_class')
-TSNEPlot(tiss_facs_bcells, group.by = 'mouse.sex')
-TSNEPlot(tiss_facs_bcells, group.by = 'mouse.id')
-TSNEPlot(tiss_facs_bcells, group.by = 'plate.barcode')
+TSNEPlot(tiss_facs_immune)
+TSNEPlot(tiss_facs_immune, group.by = 'tissue')
+TSNEPlot(tiss_facs_immune, group.by = 'cell_ontology_class')
+TSNEPlot(tiss_facs_immune, group.by = 'mouse.sex')
+TSNEPlot(tiss_facs_immune, group.by = 'mouse.id')
+TSNEPlot(tiss_facs_immune, group.by = 'plate.barcode')
 ```
 
 ```{r}
-FeaturePlot(tiss_facs_bcells, c('Cd19', 'Ptprc'))
+table(tiss_facs_immune@meta.data$cell_ontology_class, tiss_facs_immune@ident)
 ```
 
 
 ```{r}
-tiss_facs_cd19 = SubsetData(object = tiss_facs_bcells, ident.use = c(0, 1, 3, 4, 5))
+genes_to_check= c('Cd19', 'Ptprc', 'Cd79a')
+
+FeaturePlot(tiss_facs_immune, genes_to_check)
+RidgePlot(tiss_facs_immune, genes_to_check)
+DotPlot(tiss_facs_immune, genes_to_check)
+```
+
+
+```{r}
+tiss_facs_cd19 = SubsetData(object = tiss_facs_immune, ident.use = c(0, 2))
 tiss_facs_cd19 = process_tissue(tiss_facs_cd19, scale=1e6)
 ```
 
@@ -113,6 +122,11 @@ TSNEPlot(tiss_facs_cd19, group.by = 'mouse.id')
 # TSNEPlot(tiss_facs_cd19, group.by = 'plate.barcode')
 ```
 
+```{r}
+table(tiss_facs_cd19@meta.data$cell_ontology_class, tiss_facs_cd19@ident)
+```
+
+
 
 ```{r}
 tiss_facs_cd19 = BuildClusterTree(tiss_facs_cd19)
@@ -132,6 +146,6 @@ tiss_facs_cd19@meta.data[,'pca.cluster.ids'] = as.numeric(tiss_facs_cd19@ident)
 ## Save the Robj for later
 
 ```{r}
-save(tiss_facs_cd19, file = here('vignettes', 'bcells', 'facs_cd19.Robj'))
+save(tiss_facs_cd19, file = here('vignettes', 'immune', 'facs_cd19.Robj'))
 ```
 

@@ -172,26 +172,47 @@ $(document).ready(function () {
 
 
 <!-- rnb-text-begin -->
-<p>In this post, we will analyze the differential expression of B cells in different compartments of the body. To do this, we will first grab all the cells that were annotated as immune. Since we used the <a href="http://obofoundry.org/ontology/cl.html">Cell Ontology</a>, this is easy as we can take any cells that were annotated as a “leukocyte” or descendant, as this encompasses all immune cells. In particular, B cells, which are <a href="http://www.ontobee.org/ontology/CL?iri=http://purl.obolibrary.org/obo/CL_0000542">lymphoctes, are a descendant (child) of leukocytes</a>. The cell ontology ID for <a href="http://purl.obolibrary.org/obo/CL_0000738">leukocyte</a> is <code>CL:0000738</code></p>
+<p>In this post, we will analyze the differential expression of B cells in different compartments of the body. To do this, we will first grab all the cells that were annotated as immune. Since we used the <a href="http://obofoundry.org/ontology/cl.html">Cell Ontology</a>, this is easy as we can take any cells that were annotated as a “leukocyte” or descendant, as this encompasses all immune cells. To enable such analyses, for each cell’s annotation we stored both the <code>cell_ontology_class</code>, e.g. “leukocyte” and the <code>cell_ontology_id</code>. In particular, B cells, which are <a href="http://www.ontobee.org/ontology/CL?iri=http://purl.obolibrary.org/obo/CL_0000542">lymphoctes, are a descendant (child) of leukocytes</a>. The cell ontology ID for <a href="http://purl.obolibrary.org/obo/CL_0000738">leukocyte</a> is <code>CL:0000738</code>.</p>
+<p>First, we load the <a href="https://www.rdocumentation.org/packages/ontologyIndex/versions/2.4"><code>ontologyIndex</code></a> package for reading ontologies, and grab the latest version of the Cell Ontology from GitHub. Then, we use <code>get_descendants</code> to obtain all children terms of “leukocyte,” which includes “leukocyte” itself.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShvbnRvbG9neUluZGV4KVxuXG5jZWxsX29udG9sb2d5ID0gZ2V0X29udG9sb2d5KCdodHRwczovL3Jhdy5naXRodWJ1c2VyY29udGVudC5jb20vb2JvcGhlbm90eXBlL2NlbGwtb250b2xvZ3kvbWFzdGVyL2NsLWJhc2ljLm9ibycsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgIGV4dHJhY3RfdGFncz0nZXZlcnl0aGluZycpXG5cbmxldWtvY3l0ZV9pZCA9IFwiQ0w6MDAwMDczOFwiXG5sZXVrb2N5dGVfb3JfZGVzY2VuZGFudCA9IGdldF9kZXNjZW5kYW50cyhjZWxsX29udG9sb2d5LCByb290cz1sZXVrb2N5dGVfaWQpXG5gYGAifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShvbnRvbG9neUluZGV4KVxuY2VsbF9vbnRvbG9neSA9IGdldF9vbnRvbG9neSgnaHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL29ib3BoZW5vdHlwZS9jZWxsLW9udG9sb2d5L21hc3Rlci9jbC1iYXNpYy5vYm8nLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICBleHRyYWN0X3RhZ3M9J2V2ZXJ5dGhpbmcnKVxubGV1a29jeXRlX2lkID0gXCJDTDowMDAwNzM4XCJcbmxldWtvY3l0ZV9vcl9kZXNjZW5kYW50ID0gZ2V0X2Rlc2NlbmRhbnRzKGNlbGxfb250b2xvZ3ksIHJvb3RzPWxldWtvY3l0ZV9pZClcbnByaW50KHBhc3RlKFwibGVuZ3RoKGxldWtvY3l0ZV9vcl9kZXNjZW5kYW50KVwiLCBsZW5ndGgobGV1a29jeXRlX29yX2Rlc2NlbmRhbnQpKSlcbmBgYCJ9 -->
 <pre class="r"><code>library(ontologyIndex)
-
 cell_ontology = get_ontology('https://raw.githubusercontent.com/obophenotype/cell-ontology/master/cl-basic.obo',
                              extract_tags='everything')
-
 leukocyte_id = &quot;CL:0000738&quot;
-leukocyte_or_descendant = get_descendants(cell_ontology, roots=leukocyte_id)</code></pre>
+leukocyte_or_descendant = get_descendants(cell_ontology, roots=leukocyte_id)
+print(paste(&quot;length(leukocyte_or_descendant)&quot;, length(leukocyte_or_descendant)))</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFwibGVuZ3RoKGxldWtvY3l0ZV9vcl9kZXNjZW5kYW50KSA0OTdcIlxuIn0= -->
+<pre><code>[1] &quot;length(leukocyte_or_descendant) 497&quot;</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpbnQocGFzdGUoXCJsZXVrb2N5dGVfaWQgJWluJSBsZXVrb2N5dGVfb3JfZGVzY2VuZGFudFwiLCBsZXVrb2N5dGVfaWQgJWluJSBsZXVrb2N5dGVfb3JfZGVzY2VuZGFudCkpXG5gYGAifQ== -->
+<pre class="r"><code>print(paste(&quot;leukocyte_id %in% leukocyte_or_descendant&quot;, leukocyte_id %in% leukocyte_or_descendant))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFwibGV1a29jeXRlX2lkICVpbiUgbGV1a29jeXRlX29yX2Rlc2NlbmRhbnQgVFJVRVwiXG4ifQ== -->
+<pre><code>[1] &quot;leukocyte_id %in% leukocyte_or_descendant TRUE&quot;</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Add a new chunk by clicking the <em>Insert Chunk</em> button on the toolbar or by pressing <em>Cmd+Option+I</em>.</p>
-<p>When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the <em>Preview</em> button or press <em>Cmd+Shift+K</em> to preview the HTML file).</p>
-<p>The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike <em>Knit</em>, <em>Preview</em> does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.</p>
+<p>Here are examples of some of the children terms of “leukocyte:”</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaGVhZChjZWxsX29udG9sb2d5JG5hbWVbbGV1a29jeXRlX29yX2Rlc2NlbmRhbnRdKVxuYGBgIn0= -->
+<pre class="r"><code>head(cell_ontology$name[leukocyte_or_descendant])</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgICAgICAgICAgIENMOjAwMDA3MzggICAgICAgICAgICAgICAgICAgIENMOjAwMDA0NTEgICAgICAgICAgICAgICAgICAgIENMOjAwMDA3NjYgXG4gICAgICAgICAgICAgICAgICBcImxldWtvY3l0ZVwiICAgICAgICAgICAgICBcImRlbmRyaXRpYyBjZWxsXCIgICAgICAgICAgIFwibXllbG9pZCBsZXVrb2N5dGVcIiBcbiAgICAgICAgICAgICAgICAgICBDTDowMDAyMDg3ICAgICAgICAgICAgICAgICAgICBDTDoyMDAwMDc0ICAgICAgICAgICAgICAgICAgICBDTDowMDAwNzg0IFxuICAgICAgXCJub25ncmFudWxhciBsZXVrb2N5dGVcIiAgICAgICAgICAgICAgICAgIFwic3BsZW5vY3l0ZVwiIFwicGxhc21hY3l0b2lkIGRlbmRyaXRpYyBjZWxsXCIgXG4ifQ== -->
+<pre><code>                   CL:0000738                    CL:0000451                    CL:0000766 
+                  &quot;leukocyte&quot;              &quot;dendritic cell&quot;           &quot;myeloid leukocyte&quot; 
+                   CL:0002087                    CL:2000074                    CL:0000784 
+      &quot;nongranular leukocyte&quot;                  &quot;splenocyte&quot; &quot;plasmacytoid dendritic cell&quot; </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Now that we have</p>
 <!-- rnb-text-end -->
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiUiBOb3RlYm9vayIKb3V0cHV0OiBodG1sX25vdGVib29rCi0tLQoKSW4gdGhpcyBwb3N0LCB3ZSB3aWxsIGFuYWx5emUgdGhlIGRpZmZlcmVudGlhbCBleHByZXNzaW9uIG9mIEIgY2VsbHMgaW4gZGlmZmVyZW50IGNvbXBhcnRtZW50cyBvZiB0aGUgYm9keS4gVG8gZG8gdGhpcywgd2Ugd2lsbCBmaXJzdCBncmFiIGFsbCB0aGUgY2VsbHMgdGhhdCB3ZXJlIGFubm90YXRlZCBhcyBpbW11bmUuIFNpbmNlIHdlIHVzZWQgdGhlIFtDZWxsIE9udG9sb2d5XShodHRwOi8vb2JvZm91bmRyeS5vcmcvb250b2xvZ3kvY2wuaHRtbCksIHRoaXMgaXMgZWFzeSBhcyB3ZSBjYW4gdGFrZSBhbnkgY2VsbHMgdGhhdCB3ZXJlIGFubm90YXRlZCBhcyBhICJsZXVrb2N5dGUiIG9yIGRlc2NlbmRhbnQsIGFzIHRoaXMgZW5jb21wYXNzZXMgYWxsIGltbXVuZSBjZWxscy4gSW4gcGFydGljdWxhciwgQiBjZWxscywgd2hpY2ggYXJlIFtseW1waG9jdGVzLCBhcmUgYSBkZXNjZW5kYW50IChjaGlsZCkgb2YgbGV1a29jeXRlc10oaHR0cDovL3d3dy5vbnRvYmVlLm9yZy9vbnRvbG9neS9DTD9pcmk9aHR0cDovL3B1cmwub2JvbGlicmFyeS5vcmcvb2JvL0NMXzAwMDA1NDIpLiBUaGUgY2VsbCBvbnRvbG9neSBJRCBmb3IgW2xldWtvY3l0ZV0oaHR0cDovL3B1cmwub2JvbGlicmFyeS5vcmcvb2JvL0NMXzAwMDA3MzgpIGlzIGBDTDowMDAwNzM4YAoKYGBge3J9CmxpYnJhcnkob250b2xvZ3lJbmRleCkKCmNlbGxfb250b2xvZ3kgPSBnZXRfb250b2xvZ3koJ2h0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9vYm9waGVub3R5cGUvY2VsbC1vbnRvbG9neS9tYXN0ZXIvY2wtYmFzaWMub2JvJywKICAgICAgICAgICAgICAgICAgICAgICAgICAgICBleHRyYWN0X3RhZ3M9J2V2ZXJ5dGhpbmcnKQoKbGV1a29jeXRlX2lkID0gIkNMOjAwMDA3MzgiCmxldWtvY3l0ZV9vcl9kZXNjZW5kYW50ID0gZ2V0X2Rlc2NlbmRhbnRzKGNlbGxfb250b2xvZ3ksIHJvb3RzPWxldWtvY3l0ZV9pZCkKYGBgCgpBZGQgYSBuZXcgY2h1bmsgYnkgY2xpY2tpbmcgdGhlICpJbnNlcnQgQ2h1bmsqIGJ1dHRvbiBvbiB0aGUgdG9vbGJhciBvciBieSBwcmVzc2luZyAqQ21kK09wdGlvbitJKi4KCldoZW4geW91IHNhdmUgdGhlIG5vdGVib29rLCBhbiBIVE1MIGZpbGUgY29udGFpbmluZyB0aGUgY29kZSBhbmQgb3V0cHV0IHdpbGwgYmUgc2F2ZWQgYWxvbmdzaWRlIGl0IChjbGljayB0aGUgKlByZXZpZXcqIGJ1dHRvbiBvciBwcmVzcyAqQ21kK1NoaWZ0K0sqIHRvIHByZXZpZXcgdGhlIEhUTUwgZmlsZSkuIAoKVGhlIHByZXZpZXcgc2hvd3MgeW91IGEgcmVuZGVyZWQgSFRNTCBjb3B5IG9mIHRoZSBjb250ZW50cyBvZiB0aGUgZWRpdG9yLiBDb25zZXF1ZW50bHksIHVubGlrZSAqS25pdCosICpQcmV2aWV3KiBkb2VzIG5vdCBydW4gYW55IFIgY29kZSBjaHVua3MuIEluc3RlYWQsIHRoZSBvdXRwdXQgb2YgdGhlIGNodW5rIHdoZW4gaXQgd2FzIGxhc3QgcnVuIGluIHRoZSBlZGl0b3IgaXMgZGlzcGxheWVkLgoK</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiUiBOb3RlYm9vayIKb3V0cHV0OiBodG1sX25vdGVib29rCi0tLQoKSW4gdGhpcyBwb3N0LCB3ZSB3aWxsIGFuYWx5emUgdGhlIGRpZmZlcmVudGlhbCBleHByZXNzaW9uIG9mIEIgY2VsbHMgaW4gZGlmZmVyZW50IGNvbXBhcnRtZW50cyBvZiB0aGUgYm9keS4gVG8gZG8gdGhpcywgd2Ugd2lsbCBmaXJzdCBncmFiIGFsbCB0aGUgY2VsbHMgdGhhdCB3ZXJlIGFubm90YXRlZCBhcyBpbW11bmUuIFNpbmNlIHdlIHVzZWQgdGhlIFtDZWxsIE9udG9sb2d5XShodHRwOi8vb2JvZm91bmRyeS5vcmcvb250b2xvZ3kvY2wuaHRtbCksIHRoaXMgaXMgZWFzeSBhcyB3ZSBjYW4gdGFrZSBhbnkgY2VsbHMgdGhhdCB3ZXJlIGFubm90YXRlZCBhcyBhICJsZXVrb2N5dGUiIG9yIGRlc2NlbmRhbnQsIGFzIHRoaXMgZW5jb21wYXNzZXMgYWxsIGltbXVuZSBjZWxscy4gVG8gZW5hYmxlIHN1Y2ggYW5hbHlzZXMsIGZvciBlYWNoIGNlbGwncyBhbm5vdGF0aW9uIHdlIHN0b3JlZCBib3RoIHRoZSBgY2VsbF9vbnRvbG9neV9jbGFzc2AsIGUuZy4gImxldWtvY3l0ZSIgYW5kIHRoZSBgY2VsbF9vbnRvbG9neV9pZGAuIEluIHBhcnRpY3VsYXIsIEIgY2VsbHMsIHdoaWNoIGFyZSBbbHltcGhvY3RlcywgYXJlIGEgZGVzY2VuZGFudCAoY2hpbGQpIG9mIGxldWtvY3l0ZXNdKGh0dHA6Ly93d3cub250b2JlZS5vcmcvb250b2xvZ3kvQ0w/aXJpPWh0dHA6Ly9wdXJsLm9ib2xpYnJhcnkub3JnL29iby9DTF8wMDAwNTQyKS4gVGhlIGNlbGwgb250b2xvZ3kgSUQgZm9yIFtsZXVrb2N5dGVdKGh0dHA6Ly9wdXJsLm9ib2xpYnJhcnkub3JnL29iby9DTF8wMDAwNzM4KSBpcyBgQ0w6MDAwMDczOGAuIAoKRmlyc3QsIHdlIGxvYWQgdGhlIFtgb250b2xvZ3lJbmRleGBdKGh0dHBzOi8vd3d3LnJkb2N1bWVudGF0aW9uLm9yZy9wYWNrYWdlcy9vbnRvbG9neUluZGV4L3ZlcnNpb25zLzIuNCkgcGFja2FnZSBmb3IgcmVhZGluZyBvbnRvbG9naWVzLCBhbmQgZ3JhYiB0aGUgbGF0ZXN0IHZlcnNpb24gb2YgdGhlIENlbGwgT250b2xvZ3kgZnJvbSBHaXRIdWIuIFRoZW4sIHdlIHVzZSBgZ2V0X2Rlc2NlbmRhbnRzYCB0byBvYnRhaW4gYWxsIGNoaWxkcmVuIHRlcm1zIG9mICJsZXVrb2N5dGUsIiB3aGljaCBpbmNsdWRlcyAibGV1a29jeXRlIiBpdHNlbGYuCgpgYGB7cn0KbGlicmFyeShvbnRvbG9neUluZGV4KQoKY2VsbF9vbnRvbG9neSA9IGdldF9vbnRvbG9neSgnaHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL29ib3BoZW5vdHlwZS9jZWxsLW9udG9sb2d5L21hc3Rlci9jbC1iYXNpYy5vYm8nLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgIGV4dHJhY3RfdGFncz0nZXZlcnl0aGluZycpCgpsZXVrb2N5dGVfaWQgPSAiQ0w6MDAwMDczOCIKbGV1a29jeXRlX29yX2Rlc2NlbmRhbnQgPSBnZXRfZGVzY2VuZGFudHMoY2VsbF9vbnRvbG9neSwgcm9vdHM9bGV1a29jeXRlX2lkKQpwcmludChwYXN0ZSgibGVuZ3RoKGxldWtvY3l0ZV9vcl9kZXNjZW5kYW50KSIsIGxlbmd0aChsZXVrb2N5dGVfb3JfZGVzY2VuZGFudCkpKQpwcmludChwYXN0ZSgibGV1a29jeXRlX2lkICVpbiUgbGV1a29jeXRlX29yX2Rlc2NlbmRhbnQiLCBsZXVrb2N5dGVfaWQgJWluJSBsZXVrb2N5dGVfb3JfZGVzY2VuZGFudCkpCmBgYAoKSGVyZSBhcmUgZXhhbXBsZXMgb2Ygc29tZSBvZiB0aGUgY2hpbGRyZW4gdGVybXMgb2YgImxldWtvY3l0ZToiCgpgYGB7cn0KaGVhZChjZWxsX29udG9sb2d5JG5hbWVbbGV1a29jeXRlX29yX2Rlc2NlbmRhbnRdKQpgYGAKCgpOb3cgdGhhdCB3ZSBoYXZlIAoK</div>
 
 
 

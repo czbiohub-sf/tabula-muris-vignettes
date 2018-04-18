@@ -159,6 +159,34 @@ for (fat_subtissue in fat_subtissues){
 }
 ```
 
+```{r}
+fat_subtissue_markers[, "genes"] = rownames(fat_subtissue_markers)
+fat_subtissue_markers %>% group_by(tissue_subtissue) %>% top_n(-10, p_val_adj)
+```
+```{r}
+write_csv(fat_subtissue_markers, here('vignettes', 'bcells', 'facs_fat_subtissue_markers.csv'))
+```
+
+```{r}
+top_fat_subtissue_markers = fat_subtissue_markers %>% group_by(tissue_subtissue) %>% top_n(-10, p_val_adj)
+top_fat_subtissue_genes = sort(unique(top_fat_subtissue_markers$genes))
+top_fat_subtissue_genes
+```
+
+```{r}
+write_csv(top_fat_subtissue_markers, here('vignettes', 'bcells', 'facs_fat_subtissue_markers_top10per.csv'))
+```
+
+```{r}
+RidgePlot(tiss_facs_tissues_enough_cells,
+          features.plot=top_fat_subtissue_genes, 
+          group.by='tissue_subtissue_fat')
+```
+
+```{r}
+DotPlot(tiss_facs_tissues_enough_cells, genes.plot = rev(top_fat_subtissue_genes),
+        group.by='tissue_subtissue_fat')
+```
 
 
 ## Get differential expression between tissues

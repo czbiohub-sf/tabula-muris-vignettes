@@ -1,4 +1,4 @@
-find_markers <- function(tiss, annotation, min.cells = 50){
+find_markers <- function(tiss, annotation){
   annotations = tiss@meta.data[,annotation]
   unique_annotations = unique(annotations)
   enumerated_annotations = 0:(length(unique_annotations)-1)
@@ -6,8 +6,7 @@ find_markers <- function(tiss, annotation, min.cells = 50){
   annotation_ident = as.factor(plyr::mapvalues(x = annotations, from = unique_annotations, to = enumerated_annotations))
   names(annotation_ident) = names(tiss@ident)
   tiss@ident = annotation_ident
-  tiss.markers <- FindAllMarkers(object = tiss, only.pos = TRUE, min.pct = 0.25, thresh.use = 0.25, 
-                                 min.cells = min.cells)
+  tiss.markers <- FindAllMarkers(object = tiss, only.pos = TRUE, min.pct = 0.25, thresh.use = 0.25)
   
   # Add a column showing what the annotations originally were
   tiss.markers[, annotation] = as.factor(plyr::mapvalues(x=tiss.markers$cluster, from=enumerated_annotations, to=unique_annotations))

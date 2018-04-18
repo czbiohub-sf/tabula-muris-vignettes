@@ -174,157 +174,91 @@ $(document).ready(function () {
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShTZXVyYXQpXG5saWJyYXJ5KHRpZHl2ZXJzZSlcbmxpYnJhcnkoaGVyZSlcbnNvdXJjZShoZXJlKCd2aWduZXR0ZXMnLCAnYmNlbGxzJywgJ2NvbW1vbi5SJykpXG5gYGAifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShTZXVyYXQpXG5saWJyYXJ5KHRpZHl2ZXJzZSlcbmxpYnJhcnkoaGVyZSlcbnNvdXJjZShoZXJlKCd2aWduZXR0ZXMnLCAnYmNlbGxzJywgJ2NvbW1vbi5SJykpXG5cbmxvYWQoaGVyZSgndmlnbmV0dGVzJywgJ2JjZWxscycsICd0aXNzdWVzX2Vub3VnaF9jZWxscy5Sb2JqJykpXG5gYGAifQ== -->
 <pre class="r"><code>library(Seurat)
 library(tidyverse)
 library(here)
-source(here('vignettes', 'bcells', 'common.R'))</code></pre>
+source(here('vignettes', 'bcells', 'common.R'))
+
+load(here('vignettes', 'bcells', 'tissues_enough_cells.Robj'))</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiUGFyc2VkIHdpdGggY29sdW1uIHNwZWNpZmljYXRpb246XG5jb2xzKFxuICBgTUdJIEdlbmUvTWFya2VyIElEYCA9IGNvbF9jaGFyYWN0ZXIoKSxcbiAgU3ltYm9sID0gY29sX2NoYXJhY3RlcigpLFxuICBOYW1lID0gY29sX2NoYXJhY3RlcigpLFxuICBDaHIgPSBjb2xfY2hhcmFjdGVyKCksXG4gIFF1YWxpZmllciA9IGNvbF9jaGFyYWN0ZXIoKSxcbiAgYEFubm90YXRlZCBUZXJtYCA9IGNvbF9jaGFyYWN0ZXIoKSxcbiAgQ29udGV4dCA9IGNvbF9jaGFyYWN0ZXIoKSxcbiAgUHJvdGVvZm9ybSA9IGNvbF9jaGFyYWN0ZXIoKSxcbiAgRXZpZGVuY2UgPSBjb2xfY2hhcmFjdGVyKCksXG4gIGBJbmZlcnJlZCBGcm9tYCA9IGNvbF9jaGFyYWN0ZXIoKSxcbiAgYFJlZmVyZW5jZShzKWAgPSBjb2xfY2hhcmFjdGVyKCksXG4gIGNhdGVnb3J5ID0gY29sX2NoYXJhY3RlcigpXG4pXG4ifQ== -->
-<pre><code>Parsed with column specification:
-cols(
-  `MGI Gene/Marker ID` = col_character(),
-  Symbol = col_character(),
-  Name = col_character(),
-  Chr = col_character(),
-  Qualifier = col_character(),
-  `Annotated Term` = col_character(),
-  Context = col_character(),
-  Proteoform = col_character(),
-  Evidence = col_character(),
-  `Inferred From` = col_character(),
-  `Reference(s)` = col_character(),
-  category = col_character()
-)</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubG9hZChoZXJlKCd2aWduZXR0ZXMnLCAnYmNlbGxzJywgJ2ZhY3NfY2QxOS5Sb2JqJykpXG5gYGAifQ== -->
-<pre class="r"><code>load(here('vignettes', 'bcells', 'facs_cd19.Robj'))</code></pre>
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>How many cells do we have per tissue?</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGFibGUodGlzc190aXNzdWVzX2Vub3VnaF9jZWxsc0BtZXRhLmRhdGEkdGlzc3VlKVxuYGBgIn0= -->
+<pre class="r"><code>table(tiss_tissues_enough_cells@meta.data$tissue)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGFibGUodGlzc19mYWNzX2NkMTlAaWRlbnQpXG5gYGAifQ== -->
-<pre class="r"><code>table(tiss_facs_cd19@ident)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGlzc3Vlcy5lbm91Z2guY2VsbHMgPSB0YWJsZSh0aXNzX3Rpc3N1ZXNfZW5vdWdoX2NlbGxzQG1ldGEuZGF0YSR0aXNzdWUpID4gMzBcbnRpc3N1ZXMuZW5vdWdoLmNlbGxzID0gdGlzc3Vlcy5lbm91Z2guY2VsbHNbdGlzc3Vlcy5lbm91Z2guY2VsbHNdXG50aXNzX2ZhY3NfdGlzc3Vlc19lbm91Z2hfY2VsbHMgPSBTdWJzZXREYXRhKHRpc3NfdGlzc3Vlc19lbm91Z2hfY2VsbHMsIHN1YnNldC5uYW1lPSd0aXNzdWUnLCBcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYWNjZXB0LnZhbHVlID0gbmFtZXModGlzc3Vlcy5lbm91Z2guY2VsbHMpKVxuc29ydCh1bmlxdWUodGlzc19mYWNzX3Rpc3N1ZXNfZW5vdWdoX2NlbGxzQG1ldGEuZGF0YSR0aXNzdWUpKVxudGFibGUodGlzc19mYWNzX3Rpc3N1ZXNfZW5vdWdoX2NlbGxzQG1ldGEuZGF0YSR0aXNzdWUpXG5kaW0odGlzc190aXNzdWVzX2Vub3VnaF9jZWxsc0BzY2FsZS5kYXRhKVxuZGltKHRpc3NfZmFjc190aXNzdWVzX2Vub3VnaF9jZWxsc0BzY2FsZS5kYXRhKVxuYGBgIn0= -->
+<pre class="r"><code>tissues.enough.cells = table(tiss_tissues_enough_cells@meta.data$tissue) &gt; 30
+tissues.enough.cells = tissues.enough.cells[tissues.enough.cells]
+tiss_facs_tissues_enough_cells = SubsetData(tiss_tissues_enough_cells, subset.name='tissue', 
+                                            accept.value = names(tissues.enough.cells))
+sort(unique(tiss_facs_tissues_enough_cells@meta.data$tissue))
+table(tiss_facs_tissues_enough_cells@meta.data$tissue)
+dim(tiss_tissues_enough_cells@scale.data)
+dim(tiss_facs_tissues_enough_cells@scale.data)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
+<div id="get-differential-expression-between-tissues" class="section level2">
+<h2>Get differential expression between tissues</h2>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2x1c3Rlci5tYXJrZXJzID0gRmluZEFsbE1hcmtlcnMob2JqZWN0ID0gdGlzc19mYWNzX2NkMTksIG9ubHkucG9zID0gVFJVRSwgbWluLnBjdCA9IDAuMjUsIHRocmVzaC51c2UgPSAwLjI1KVxuaGVhZChjbHVzdGVyLm1hcmtlcnMpXG5gYGAifQ== -->
-<pre class="r"><code>cluster.markers = FindAllMarkers(object = tiss_facs_cd19, only.pos = TRUE, min.pct = 0.25, thresh.use = 0.25)
-head(cluster.markers)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2x1c3Rlci5tYXJrZXJzICU+JSBncm91cF9ieShjbHVzdGVyKSAlPiUgdG9wX24oLTEwLCBwX3ZhbF9hZGopXG5gYGAifQ== -->
-<pre class="r"><code>cluster.markers %&gt;% group_by(cluster) %&gt;% top_n(-10, p_val_adj)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxud3JpdGVfbWFya2VycyhjbHVzdGVyLm1hcmtlcnMsIGhlcmUoJ3ZpZ25ldHRlcycsICdiY2VsbHMnLCAnZmFjc19jbHVzdGVyX21hcmtlcnMuY3N2JykpXG5gYGAifQ== -->
-<pre class="r"><code>write_markers(cluster.markers, here('vignettes', 'bcells', 'facs_cluster_markers.csv'))</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudG9wX2NsdXN0ZXJfbWFya2VycyA9IGNsdXN0ZXIubWFya2VycyAlPiUgZ3JvdXBfYnkoaWRlbnQpICU+JSB0b3BfbigtMTAsIHBfdmFsX2FkailcbmBgYCJ9 -->
-<pre class="r"><code>top_cluster_markers = cluster.markers %&gt;% group_by(ident) %&gt;% top_n(-10, p_val_adj)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubkNvbCA9IDRcbnBsb3RzID0gRmVhdHVyZVBsb3QodGlzc19mYWNzX2NkMTksIGZlYXR1cmVzLnBsb3QgPSBzb3J0KHVuaXF1ZSh0b3BfY2x1c3Rlcl9tYXJrZXJzJGdlbmUpKSwgXG4gICAgICAgICAgICAgICAgICAgIGRvLnJldHVybiA9IFRSVUUsIG5Db2wgPSBuQ29sLCBuby5heGVzPVRSVUUsIFxuICAgICAgICAgICAgICAgICAgICAjIExpZ2h0IGdyZXkgdG8gXG4gICAgICAgICAgICAgICAgICAgIGNvbHMudXNlPWMoJ2xpZ2h0Z3JleScsICcjMDA4MDgwJykpXG5mb3IgKHAgaW4gcGxvdHMpe1xuICBnZW5lX25hbWUgPSBwJGxhYmVscyR0aXRsZVxuICBnZW5lX3Rpc3N1ZXMgPSB0b3Bfb3JnYW5fbWFya2VycyAlPiUgZmlsdGVyKGdlbmUgPT0gcCRsYWJlbHMkdGl0bGUpICU+JSBzZWxlY3QodGlzc3VlKVxuICBnZW5lX3Rpc3N1ZXMgPSBhcy5jaGFyYWN0ZXIoYXMudmVjdG9yKGdlbmVfdGlzc3VlcyR0aXNzdWUpKVxuICBwcmludChwYXN0ZShnZW5lX25hbWUsIHBhc3RlKGdlbmVfdGlzc3VlcykpKVxuICB0aXRsZSA9IHBhc3RlMChnZW5lX25hbWUsICcgKCcsIHBhc3RlKGdlbmVfdGlzc3Vlcywgc2VwPScsICcpLCAnKScpXG4gIHAgPSBwICsgbGFicyh0aXRsZT10aXRsZSlcbiAgcGxvdHNbW2dlbmVfbmFtZV1dID0gcFxufVxucGxvdHMuY29tYmluZWQgPC0gcGxvdF9ncmlkKHBsb3RsaXN0ID0gcGxvdHMsIG5jb2wgPSBuQ29sKVxuaW52aXNpYmxlKHggPSBsYXBwbHkoWCA9IHBsb3RzLmNvbWJpbmVkLCBGVU4gPSBwcmludCkpXG5nZ3NhdmUoJ2ZhY3NfZmVhdHVyZXBsb3RfdG9wX2NsdXN0ZXJfbWFya2Vycy5wZGYnLCBoZWlnaHQgPSA0MCwgd2lkdGg9MTUpXG5gYGAifQ== -->
-<pre class="r"><code>nCol = 4
-plots = FeaturePlot(tiss_facs_cd19, features.plot = sort(unique(top_cluster_markers$gene)), 
-                    do.return = TRUE, nCol = nCol, no.axes=TRUE, 
-                    # Light grey to 
-                    cols.use=c('lightgrey', '#008080'))
-for (p in plots){
-  gene_name = p$labels$title
-  gene_tissues = top_organ_markers %&gt;% filter(gene == p$labels$title) %&gt;% select(tissue)
-  gene_tissues = as.character(as.vector(gene_tissues$tissue))
-  print(paste(gene_name, paste(gene_tissues)))
-  title = paste0(gene_name, ' (', paste(gene_tissues, sep=', '), ')')
-  p = p + labs(title=title)
-  plots[[gene_name]] = p
-}
-plots.combined &lt;- plot_grid(plotlist = plots, ncol = nCol)
-invisible(x = lapply(X = plots.combined, FUN = print))
-ggsave('facs_featureplot_top_cluster_markers.pdf', height = 40, width=15)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxub3JnYW5fbWFya2VycyA9IGZpbmRfbWFya2Vycyh0aXNzX2ZhY3NfY2QxOSwgJ3Rpc3N1ZScpXG5oZWFkKG9yZ2FuX21hcmtlcnMpXG5gYGAifQ== -->
-<pre class="r"><code>organ_markers = find_markers(tiss_facs_cd19, 'tissue')
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxub3JnYW5fbWFya2VycyA9IGZpbmRfbWFya2Vycyh0aXNzX2ZhY3NfdGlzc3Vlc19lbm91Z2hfY2VsbHMsICd0aXNzdWUnKVxud3JpdGVfY3N2KG9yZ2FuX21hcmtlcnMsIGhlcmUoJ3ZpZ25ldHRlcycsICdiY2VsbHMnLCAnZmFjc190aXNzdWVfbWFya2Vycy5jc3YnKSlcbmhlYWQob3JnYW5fbWFya2VycylcbmBgYCJ9 -->
+<pre class="r"><code>organ_markers = find_markers(tiss_facs_tissues_enough_cells, 'tissue')
+write_csv(organ_markers, here('vignettes', 'bcells', 'facs_tissue_markers.csv'))
 head(organ_markers)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGlzc3VlX2NlbGxfY291bnRzID0gdGFibGUodGlzc19mYWNzX2NkMTlAbWV0YS5kYXRhJHRpc3N1ZSlcbnByaW50KHRpc3N1ZV9jZWxsX2NvdW50cylcblxudGlzc3Vlc193aXRoX2Vub3VnaF9jZWxscyA9IHRpc3N1ZV9jZWxsX2NvdW50c1t0aXNzdWVfY2VsbF9jb3VudHMgPiA1MF1cbnRpc3N1ZXNfd2l0aF9lbm91Z2hfY2VsbHNcbmBgYCJ9 -->
-<pre class="r"><code>tissue_cell_counts = table(tiss_facs_cd19@meta.data$tissue)
-print(tissue_cell_counts)
-
-tissues_with_enough_cells = tissue_cell_counts[tissue_cell_counts &gt; 50]
-tissues_with_enough_cells</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ2dwbG90KGRhdGE9b3JnYW5fbWFya2VycywgYWVzKHg9cF92YWxfYWRqKSkgKyBnZW9tX2hpc3RvZ3JhbSgpICsgZmFjZXRfZ3JpZCh+dGlzc3VlKVxuYGBgIn0= -->
+<pre class="r"><code>ggplot(data=organ_markers, aes(x=p_val_adj)) + geom_histogram() + facet_grid(~tissue)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxub3JnYW5fbWFya2Vyc19lbm91Z2hfY2VsbHMgPSBmaWx0ZXIob3JnYW5fbWFya2VycywgdGlzc3VlICVpbiUgbmFtZXModGlzc3Vlc193aXRoX2Vub3VnaF9jZWxscykpXG5vcmdhbl9tYXJrZXJzX2Vub3VnaF9jZWxsc1xuYGBgIn0= -->
-<pre class="r"><code>organ_markers_enough_cells = filter(organ_markers, tissue %in% names(tissues_with_enough_cells))
-organ_markers_enough_cells</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxud3JpdGVfbWFya2Vycyhvcmdhbl9tYXJrZXJzX2Vub3VnaF9jZWxscywgJ34vdGFidWxhLW11cmlzLXZpZ25ldHRlcy92aWduZXR0ZXMvYmNlbGxzL3Rpc3N1ZV9tYXJrZXJzLmNzdicpXG5gYGAifQ== -->
-<pre class="r"><code>write_markers(organ_markers_enough_cells, '~/tabula-muris-vignettes/vignettes/bcells/tissue_markers.csv')</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ2dwbG90KGRhdGE9b3JnYW5fbWFya2Vyc19lbm91Z2hfY2VsbHMsIGFlcyh4PXBfdmFsKSkgKyBnZW9tX2hpc3RvZ3JhbSgpICsgZmFjZXRfZ3JpZCh+dGlzc3VlKVxuYGBgIn0= -->
-<pre class="r"><code>ggplot(data=organ_markers_enough_cells, aes(x=p_val)) + geom_histogram() + facet_grid(~tissue)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ2dwbG90KGRhdGE9b3JnYW5fbWFya2Vyc19lbm91Z2hfY2VsbHMsIGFlcyh4PXBfdmFsX2FkaikpICsgZ2VvbV9oaXN0b2dyYW0oKSArIGZhY2V0X2dyaWQofnRpc3N1ZSlcbmBgYCJ9 -->
-<pre class="r"><code>ggplot(data=organ_markers_enough_cells, aes(x=p_val_adj)) + geom_histogram() + facet_grid(~tissue)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0aWR5dmVyc2UpXG5gYGAifQ== -->
-<pre class="r"><code>library(tidyverse)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudG9wX29yZ2FuX21hcmtlcnMgPSBvcmdhbl9tYXJrZXJzX2Vub3VnaF9jZWxscyAlPiUgZ3JvdXBfYnkodGlzc3VlKSAlPiUgdG9wX24oLTEwLCBwX3ZhbF9hZGopXG50b3Bfb3JnYW5fbWFya2Vyc1xuYGBgIn0= -->
-<pre class="r"><code>top_organ_markers = organ_markers_enough_cells %&gt;% group_by(tissue) %&gt;% top_n(-10, p_val_adj)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudG9wX29yZ2FuX21hcmtlcnMgPSBvcmdhbl9tYXJrZXJzICU+JSBncm91cF9ieSh0aXNzdWUpICU+JSB0b3BfbigtMTAsIHBfdmFsX2FkailcbndyaXRlX2Nzdihvcmdhbl9tYXJrZXJzLCBoZXJlKCd2aWduZXR0ZXMnLCAnYmNlbGxzJywgJ2ZhY3NfdGlzc3VlX21hcmtlcnNfdG9wMTBfcGVyX3Rpc3N1ZS5jc3YnKSlcbmdlbmVzLnRvLnBsb3QgPSBzb3J0KHVuaXF1ZSh0b3Bfb3JnYW5fbWFya2VycyRnZW5lKSlcbnRvcF9vcmdhbl9tYXJrZXJzXG5gYGAifQ== -->
+<pre class="r"><code>top_organ_markers = organ_markers %&gt;% group_by(tissue) %&gt;% top_n(-10, p_val_adj)
+write_csv(organ_markers, here('vignettes', 'bcells', 'facs_tissue_markers_top10_per_tissue.csv'))
+genes.to.plot = sort(unique(top_organ_markers$gene))
 top_organ_markers</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubkNvbCA9IDRcbnBsb3RzID0gRmVhdHVyZVBsb3QodGlzc19mYWNzX2NkMTksIGZlYXR1cmVzLnBsb3QgPSBzb3J0KHVuaXF1ZSh0b3Bfb3JnYW5fbWFya2VycyRnZW5lKSksIFxuICAgICAgICAgICAgICAgICAgICBkby5yZXR1cm4gPSBUUlVFLCBuQ29sID0gbkNvbCwgbm8uYXhlcz1UUlVFLCBcbiAgICAgICAgICAgICAgICAgICAgIyBMaWdodCBncmV5IHRvIFxuICAgICAgICAgICAgICAgICAgICBjb2xzLnVzZT1jKCdsaWdodGdyZXknLCAnIzAwODA4MCcpKVxuZm9yIChwIGluIHBsb3RzKXtcbiAgZ2VuZV9uYW1lID0gcCRsYWJlbHMkdGl0bGVcbiAgZ2VuZV90aXNzdWVzID0gdG9wX29yZ2FuX21hcmtlcnMgJT4lIGZpbHRlcihnZW5lID09IHAkbGFiZWxzJHRpdGxlKSAlPiUgc2VsZWN0KHRpc3N1ZSlcbiAgZ2VuZV90aXNzdWVzID0gYXMuY2hhcmFjdGVyKGFzLnZlY3RvcihnZW5lX3Rpc3N1ZXMkdGlzc3VlKSlcbiAgcHJpbnQocGFzdGUoZ2VuZV9uYW1lLCBwYXN0ZShnZW5lX3Rpc3N1ZXMpKSlcbiAgdGl0bGUgPSBwYXN0ZTAoZ2VuZV9uYW1lLCAnICgnLCBwYXN0ZShnZW5lX3Rpc3N1ZXMsIHNlcD0nLCAnKSwgJyknKVxuICBwID0gcCArIGxhYnModGl0bGU9dGl0bGUpXG4gIHBsb3RzW1tnZW5lX25hbWVdXSA9IHBcbn1cbnBsb3RzLmNvbWJpbmVkIDwtIHBsb3RfZ3JpZChwbG90bGlzdCA9IHBsb3RzLCBuY29sID0gbkNvbClcbmludmlzaWJsZSh4ID0gbGFwcGx5KFggPSBwbG90cy5jb21iaW5lZCwgRlVOID0gcHJpbnQpKVxuZ2dzYXZlKCdmYWNzX2ZlYXR1cmVwbG90X3RvcF9vcmdhbl9tYXJrZXJzLnBkZicsIGhlaWdodCA9IDQwLCB3aWR0aD0xNSlcbmBgYCJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuP3NvcnRcbmBgYCJ9 -->
+<pre class="r"><code>?sort</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudG9wX29yZ2FuX21hcmtlcnMgPSBvcmdhbl9tYXJrZXJzICU+JSBncm91cF9ieSh0aXNzdWUpICU+JSB0b3BfbigtMywgcF92YWxfYWRqKVxuZ2VuZXMudG8ucGxvdCA9IHNvcnQodW5pcXVlKHRvcF9vcmdhbl9tYXJrZXJzJGdlbmUpLCBkZWNyZWFzaW5nPVRSVUUpXG5wcmludChsZW5ndGgoZ2VuZXMudG8ucGxvdCkpXG5cblxuUmlkZ2VQbG90KHRpc3NfdGlzc3Vlc19lbm91Z2hfY2VsbHMsIGdlbmVzLnRvLnBsb3QsIGdyb3VwLmJ5PSd0aXNzdWUnKVxuRG90UGxvdCh0aXNzX3Rpc3N1ZXNfZW5vdWdoX2NlbGxzLCBnZW5lcy50by5wbG90LCBncm91cC5ieT0ndGlzc3VlJylcbmBgYCJ9 -->
+<pre class="r"><code>top_organ_markers = organ_markers %&gt;% group_by(tissue) %&gt;% top_n(-3, p_val_adj)
+genes.to.plot = sort(unique(top_organ_markers$gene), decreasing=TRUE)
+print(length(genes.to.plot))
+
+
+RidgePlot(tiss_tissues_enough_cells, genes.to.plot, group.by='tissue')
+DotPlot(tiss_tissues_enough_cells, genes.to.plot, group.by='tissue')</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubkNvbCA9IDRcbnBsb3RzID0gRmVhdHVyZVBsb3QodGlzc190aXNzdWVzX2Vub3VnaF9jZWxscywgZmVhdHVyZXMucGxvdCA9IGdlbmVzLnRvLnBsb3QsIFxuICAgICAgICAgICAgICAgICAgICBkby5yZXR1cm4gPSBUUlVFLCBuQ29sID0gbkNvbCwgbm8uYXhlcz1UUlVFLCBcbiAgICAgICAgICAgICAgICAgICAgIyBMaWdodCBncmV5IHRvIFxuICAgICAgICAgICAgICAgICAgICBjb2xzLnVzZT1jKCdsaWdodGdyZXknLCAnIzAwODA4MCcpKVxuZm9yIChwIGluIHBsb3RzKXtcbiAgZ2VuZV9uYW1lID0gcCRsYWJlbHMkdGl0bGVcbiAgZ2VuZV90aXNzdWVzID0gdG9wX29yZ2FuX21hcmtlcnMgJT4lIGZpbHRlcihnZW5lID09IHAkbGFiZWxzJHRpdGxlKSAlPiUgc2VsZWN0KHRpc3N1ZSlcbiAgZ2VuZV90aXNzdWVzID0gYXMuY2hhcmFjdGVyKGFzLnZlY3RvcihnZW5lX3Rpc3N1ZXMkdGlzc3VlKSlcbiAgcHJpbnQocGFzdGUoZ2VuZV9uYW1lLCBwYXN0ZShnZW5lX3Rpc3N1ZXMpKSlcbiAgdGl0bGUgPSBwYXN0ZTAoZ2VuZV9uYW1lLCAnICgnLCBwYXN0ZShnZW5lX3Rpc3N1ZXMsIHNlcD0nLCAnKSwgJyknKVxuICBwID0gcCArIGxhYnModGl0bGU9dGl0bGUpXG4gIHBsb3RzW1tnZW5lX25hbWVdXSA9IHBcbn1cbnBsb3RzLmNvbWJpbmVkIDwtIHBsb3RfZ3JpZChwbG90bGlzdCA9IHBsb3RzLCBuY29sID0gbkNvbClcbmludmlzaWJsZSh4ID0gbGFwcGx5KFggPSBwbG90cy5jb21iaW5lZCwgRlVOID0gcHJpbnQpKVxuZ2dzYXZlKCdmYWNzX2ZlYXR1cmVwbG90X3RvcF9vcmdhbl9tYXJrZXJzLnBkZicsIGhlaWdodCA9IDQwLCB3aWR0aD0xNSlcbmBgYCJ9 -->
 <pre class="r"><code>nCol = 4
-plots = FeaturePlot(tiss_facs_cd19, features.plot = sort(unique(top_organ_markers$gene)), 
+plots = FeaturePlot(tiss_tissues_enough_cells, features.plot = genes.to.plot, 
                     do.return = TRUE, nCol = nCol, no.axes=TRUE, 
                     # Light grey to 
                     cols.use=c('lightgrey', '#008080'))
@@ -344,8 +278,9 @@ ggsave('facs_featureplot_top_organ_markers.pdf', height = 40, width=15)</code></
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
+</div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiQiBDZWxscyBGQUNTIgpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sKLS0tCmBgYHtyfQpsaWJyYXJ5KFNldXJhdCkKbGlicmFyeSh0aWR5dmVyc2UpCmxpYnJhcnkoaGVyZSkKc291cmNlKGhlcmUoJ3ZpZ25ldHRlcycsICdiY2VsbHMnLCAnY29tbW9uLlInKSkKCmxvYWQoaGVyZSgndmlnbmV0dGVzJywgJ2JjZWxscycsICdmYWNzX2NkMTkuUm9iaicpKQpgYGAKCgpgYGB7cn0KdGFibGUodGlzc19mYWNzX2NkMTlAaWRlbnQpCmBgYAoKCmBgYHtyfQpjbHVzdGVyLm1hcmtlcnMgPSBGaW5kQWxsTWFya2VycyhvYmplY3QgPSB0aXNzX2ZhY3NfY2QxOSwgb25seS5wb3MgPSBUUlVFLCBtaW4ucGN0ID0gMC4yNSwgdGhyZXNoLnVzZSA9IDAuMjUpCmhlYWQoY2x1c3Rlci5tYXJrZXJzKQpgYGAKCmBgYHtyfQpjbHVzdGVyLm1hcmtlcnMgJT4lIGdyb3VwX2J5KGNsdXN0ZXIpICU+JSB0b3BfbigtMTAsIHBfdmFsX2FkaikKYGBgCgpgYGB7cn0Kd3JpdGVfbWFya2VycyhjbHVzdGVyLm1hcmtlcnMsIGhlcmUoJ3ZpZ25ldHRlcycsICdiY2VsbHMnLCAnZmFjc19jbHVzdGVyX21hcmtlcnMuY3N2JykpCmBgYAoKCgpgYGB7cn0KdG9wX2NsdXN0ZXJfbWFya2VycyA9IGNsdXN0ZXIubWFya2VycyAlPiUgZ3JvdXBfYnkoaWRlbnQpICU+JSB0b3BfbigtMTAsIHBfdmFsX2FkaikKYGBgCgoKYGBge3IsIGZpZy5oZWlnaHQ9NDB9Cm5Db2wgPSA0CnBsb3RzID0gRmVhdHVyZVBsb3QodGlzc19mYWNzX2NkMTksIGZlYXR1cmVzLnBsb3QgPSBzb3J0KHVuaXF1ZSh0b3BfY2x1c3Rlcl9tYXJrZXJzJGdlbmUpKSwgCiAgICAgICAgICAgICAgICAgICAgZG8ucmV0dXJuID0gVFJVRSwgbkNvbCA9IG5Db2wsIG5vLmF4ZXM9VFJVRSwgCiAgICAgICAgICAgICAgICAgICAgIyBMaWdodCBncmV5IHRvIAogICAgICAgICAgICAgICAgICAgIGNvbHMudXNlPWMoJ2xpZ2h0Z3JleScsICcjMDA4MDgwJykpCmZvciAocCBpbiBwbG90cyl7CiAgZ2VuZV9uYW1lID0gcCRsYWJlbHMkdGl0bGUKICBnZW5lX3Rpc3N1ZXMgPSB0b3Bfb3JnYW5fbWFya2VycyAlPiUgZmlsdGVyKGdlbmUgPT0gcCRsYWJlbHMkdGl0bGUpICU+JSBzZWxlY3QodGlzc3VlKQogIGdlbmVfdGlzc3VlcyA9IGFzLmNoYXJhY3Rlcihhcy52ZWN0b3IoZ2VuZV90aXNzdWVzJHRpc3N1ZSkpCiAgcHJpbnQocGFzdGUoZ2VuZV9uYW1lLCBwYXN0ZShnZW5lX3Rpc3N1ZXMpKSkKICB0aXRsZSA9IHBhc3RlMChnZW5lX25hbWUsICcgKCcsIHBhc3RlKGdlbmVfdGlzc3Vlcywgc2VwPScsICcpLCAnKScpCiAgcCA9IHAgKyBsYWJzKHRpdGxlPXRpdGxlKQogIHBsb3RzW1tnZW5lX25hbWVdXSA9IHAKfQpwbG90cy5jb21iaW5lZCA8LSBwbG90X2dyaWQocGxvdGxpc3QgPSBwbG90cywgbmNvbCA9IG5Db2wpCmludmlzaWJsZSh4ID0gbGFwcGx5KFggPSBwbG90cy5jb21iaW5lZCwgRlVOID0gcHJpbnQpKQpnZ3NhdmUoJ2ZhY3NfZmVhdHVyZXBsb3RfdG9wX2NsdXN0ZXJfbWFya2Vycy5wZGYnLCBoZWlnaHQgPSA0MCwgd2lkdGg9MTUpCmBgYAoKCmBgYHtyfQpvcmdhbl9tYXJrZXJzID0gZmluZF9tYXJrZXJzKHRpc3NfZmFjc19jZDE5LCAndGlzc3VlJykKaGVhZChvcmdhbl9tYXJrZXJzKQpgYGAKCmBgYHtyfQp0aXNzdWVfY2VsbF9jb3VudHMgPSB0YWJsZSh0aXNzX2ZhY3NfY2QxOUBtZXRhLmRhdGEkdGlzc3VlKQpwcmludCh0aXNzdWVfY2VsbF9jb3VudHMpCgp0aXNzdWVzX3dpdGhfZW5vdWdoX2NlbGxzID0gdGlzc3VlX2NlbGxfY291bnRzW3Rpc3N1ZV9jZWxsX2NvdW50cyA+IDUwXQp0aXNzdWVzX3dpdGhfZW5vdWdoX2NlbGxzCmBgYAoKCmBgYHtyfQpvcmdhbl9tYXJrZXJzX2Vub3VnaF9jZWxscyA9IGZpbHRlcihvcmdhbl9tYXJrZXJzLCB0aXNzdWUgJWluJSBuYW1lcyh0aXNzdWVzX3dpdGhfZW5vdWdoX2NlbGxzKSkKb3JnYW5fbWFya2Vyc19lbm91Z2hfY2VsbHMKYGBgCgoKCmBgYHtyfQp3cml0ZV9tYXJrZXJzKG9yZ2FuX21hcmtlcnNfZW5vdWdoX2NlbGxzLCAnfi90YWJ1bGEtbXVyaXMtdmlnbmV0dGVzL3ZpZ25ldHRlcy9iY2VsbHMvdGlzc3VlX21hcmtlcnMuY3N2JykKYGBgCgoKYGBge3J9CmdncGxvdChkYXRhPW9yZ2FuX21hcmtlcnNfZW5vdWdoX2NlbGxzLCBhZXMoeD1wX3ZhbCkpICsgZ2VvbV9oaXN0b2dyYW0oKSArIGZhY2V0X2dyaWQofnRpc3N1ZSkKYGBgCmBgYHtyfQpnZ3Bsb3QoZGF0YT1vcmdhbl9tYXJrZXJzX2Vub3VnaF9jZWxscywgYWVzKHg9cF92YWxfYWRqKSkgKyBnZW9tX2hpc3RvZ3JhbSgpICsgZmFjZXRfZ3JpZCh+dGlzc3VlKQpgYGAKYGBge3J9CmxpYnJhcnkodGlkeXZlcnNlKQpgYGAKCgoKYGBge3J9CnRvcF9vcmdhbl9tYXJrZXJzID0gb3JnYW5fbWFya2Vyc19lbm91Z2hfY2VsbHMgJT4lIGdyb3VwX2J5KHRpc3N1ZSkgJT4lIHRvcF9uKC0xMCwgcF92YWxfYWRqKQp0b3Bfb3JnYW5fbWFya2VycwpgYGAKCgpgYGB7ciwgZmlnLmhlaWdodD00MH0KbkNvbCA9IDQKcGxvdHMgPSBGZWF0dXJlUGxvdCh0aXNzX2ZhY3NfY2QxOSwgZmVhdHVyZXMucGxvdCA9IHNvcnQodW5pcXVlKHRvcF9vcmdhbl9tYXJrZXJzJGdlbmUpKSwgCiAgICAgICAgICAgICAgICAgICAgZG8ucmV0dXJuID0gVFJVRSwgbkNvbCA9IG5Db2wsIG5vLmF4ZXM9VFJVRSwgCiAgICAgICAgICAgICAgICAgICAgIyBMaWdodCBncmV5IHRvIAogICAgICAgICAgICAgICAgICAgIGNvbHMudXNlPWMoJ2xpZ2h0Z3JleScsICcjMDA4MDgwJykpCmZvciAocCBpbiBwbG90cyl7CiAgZ2VuZV9uYW1lID0gcCRsYWJlbHMkdGl0bGUKICBnZW5lX3Rpc3N1ZXMgPSB0b3Bfb3JnYW5fbWFya2VycyAlPiUgZmlsdGVyKGdlbmUgPT0gcCRsYWJlbHMkdGl0bGUpICU+JSBzZWxlY3QodGlzc3VlKQogIGdlbmVfdGlzc3VlcyA9IGFzLmNoYXJhY3Rlcihhcy52ZWN0b3IoZ2VuZV90aXNzdWVzJHRpc3N1ZSkpCiAgcHJpbnQocGFzdGUoZ2VuZV9uYW1lLCBwYXN0ZShnZW5lX3Rpc3N1ZXMpKSkKICB0aXRsZSA9IHBhc3RlMChnZW5lX25hbWUsICcgKCcsIHBhc3RlKGdlbmVfdGlzc3Vlcywgc2VwPScsICcpLCAnKScpCiAgcCA9IHAgKyBsYWJzKHRpdGxlPXRpdGxlKQogIHBsb3RzW1tnZW5lX25hbWVdXSA9IHAKfQpwbG90cy5jb21iaW5lZCA8LSBwbG90X2dyaWQocGxvdGxpc3QgPSBwbG90cywgbmNvbCA9IG5Db2wpCmludmlzaWJsZSh4ID0gbGFwcGx5KFggPSBwbG90cy5jb21iaW5lZCwgRlVOID0gcHJpbnQpKQpnZ3NhdmUoJ2ZhY3NfZmVhdHVyZXBsb3RfdG9wX29yZ2FuX21hcmtlcnMucGRmJywgaGVpZ2h0ID0gNDAsIHdpZHRoPTE1KQpgYGAKCg==</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiQiBDZWxscyBGQUNTIgpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sKLS0tCmBgYHtyfQpsaWJyYXJ5KFNldXJhdCkKbGlicmFyeSh0aWR5dmVyc2UpCmxpYnJhcnkoaGVyZSkKc291cmNlKGhlcmUoJ3ZpZ25ldHRlcycsICdiY2VsbHMnLCAnY29tbW9uLlInKSkKCmxvYWQoaGVyZSgndmlnbmV0dGVzJywgJ2JjZWxscycsICd0aXNzdWVzX2Vub3VnaF9jZWxscy5Sb2JqJykpCmBgYAoKCkhvdyBtYW55IGNlbGxzIGRvIHdlIGhhdmUgcGVyIHRpc3N1ZT8KCmBgYHtyfQp0YWJsZSh0aXNzX3Rpc3N1ZXNfZW5vdWdoX2NlbGxzQG1ldGEuZGF0YSR0aXNzdWUpCmBgYAoKYGBge3J9CnRpc3N1ZXMuZW5vdWdoLmNlbGxzID0gdGFibGUodGlzc190aXNzdWVzX2Vub3VnaF9jZWxsc0BtZXRhLmRhdGEkdGlzc3VlKSA+IDMwCnRpc3N1ZXMuZW5vdWdoLmNlbGxzID0gdGlzc3Vlcy5lbm91Z2guY2VsbHNbdGlzc3Vlcy5lbm91Z2guY2VsbHNdCnRpc3NfZmFjc190aXNzdWVzX2Vub3VnaF9jZWxscyA9IFN1YnNldERhdGEodGlzc190aXNzdWVzX2Vub3VnaF9jZWxscywgc3Vic2V0Lm5hbWU9J3Rpc3N1ZScsIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFjY2VwdC52YWx1ZSA9IG5hbWVzKHRpc3N1ZXMuZW5vdWdoLmNlbGxzKSkKc29ydCh1bmlxdWUodGlzc19mYWNzX3Rpc3N1ZXNfZW5vdWdoX2NlbGxzQG1ldGEuZGF0YSR0aXNzdWUpKQp0YWJsZSh0aXNzX2ZhY3NfdGlzc3Vlc19lbm91Z2hfY2VsbHNAbWV0YS5kYXRhJHRpc3N1ZSkKZGltKHRpc3NfdGlzc3Vlc19lbm91Z2hfY2VsbHNAc2NhbGUuZGF0YSkKZGltKHRpc3NfZmFjc190aXNzdWVzX2Vub3VnaF9jZWxsc0BzY2FsZS5kYXRhKQpgYGAKCgojIyBHZXQgZGlmZmVyZW50aWFsIGV4cHJlc3Npb24gYmV0d2VlbiB0aXNzdWVzCmBgYHtyfQpvcmdhbl9tYXJrZXJzID0gZmluZF9tYXJrZXJzKHRpc3NfZmFjc190aXNzdWVzX2Vub3VnaF9jZWxscywgJ3Rpc3N1ZScpCndyaXRlX2Nzdihvcmdhbl9tYXJrZXJzLCBoZXJlKCd2aWduZXR0ZXMnLCAnYmNlbGxzJywgJ2ZhY3NfdGlzc3VlX21hcmtlcnMuY3N2JykpCmhlYWQob3JnYW5fbWFya2VycykKYGBgCgoKYGBge3J9CmdncGxvdChkYXRhPW9yZ2FuX21hcmtlcnMsIGFlcyh4PXBfdmFsX2FkaikpICsgZ2VvbV9oaXN0b2dyYW0oKSArIGZhY2V0X2dyaWQofnRpc3N1ZSkKYGBgCgoKCmBgYHtyfQp0b3Bfb3JnYW5fbWFya2VycyA9IG9yZ2FuX21hcmtlcnMgJT4lIGdyb3VwX2J5KHRpc3N1ZSkgJT4lIHRvcF9uKC0xMCwgcF92YWxfYWRqKQp3cml0ZV9jc3Yob3JnYW5fbWFya2VycywgaGVyZSgndmlnbmV0dGVzJywgJ2JjZWxscycsICdmYWNzX3Rpc3N1ZV9tYXJrZXJzX3RvcDEwX3Blcl90aXNzdWUuY3N2JykpCmdlbmVzLnRvLnBsb3QgPSBzb3J0KHVuaXF1ZSh0b3Bfb3JnYW5fbWFya2VycyRnZW5lKSkKdG9wX29yZ2FuX21hcmtlcnMKYGBgCgpgYGB7cn0KP3NvcnQKYGBgCgoKYGBge3J9CnRvcF9vcmdhbl9tYXJrZXJzID0gb3JnYW5fbWFya2VycyAlPiUgZ3JvdXBfYnkodGlzc3VlKSAlPiUgdG9wX24oLTMsIHBfdmFsX2FkaikKZ2VuZXMudG8ucGxvdCA9IHNvcnQodW5pcXVlKHRvcF9vcmdhbl9tYXJrZXJzJGdlbmUpLCBkZWNyZWFzaW5nPVRSVUUpCnByaW50KGxlbmd0aChnZW5lcy50by5wbG90KSkKCgpSaWRnZVBsb3QodGlzc190aXNzdWVzX2Vub3VnaF9jZWxscywgZ2VuZXMudG8ucGxvdCwgZ3JvdXAuYnk9J3Rpc3N1ZScpCkRvdFBsb3QodGlzc190aXNzdWVzX2Vub3VnaF9jZWxscywgZ2VuZXMudG8ucGxvdCwgZ3JvdXAuYnk9J3Rpc3N1ZScpCmBgYAoKCmBgYHtyLCBmaWcuaGVpZ2h0PTQwfQpuQ29sID0gNApwbG90cyA9IEZlYXR1cmVQbG90KHRpc3NfdGlzc3Vlc19lbm91Z2hfY2VsbHMsIGZlYXR1cmVzLnBsb3QgPSBnZW5lcy50by5wbG90LCAKICAgICAgICAgICAgICAgICAgICBkby5yZXR1cm4gPSBUUlVFLCBuQ29sID0gbkNvbCwgbm8uYXhlcz1UUlVFLCAKICAgICAgICAgICAgICAgICAgICAjIExpZ2h0IGdyZXkgdG8gCiAgICAgICAgICAgICAgICAgICAgY29scy51c2U9YygnbGlnaHRncmV5JywgJyMwMDgwODAnKSkKZm9yIChwIGluIHBsb3RzKXsKICBnZW5lX25hbWUgPSBwJGxhYmVscyR0aXRsZQogIGdlbmVfdGlzc3VlcyA9IHRvcF9vcmdhbl9tYXJrZXJzICU+JSBmaWx0ZXIoZ2VuZSA9PSBwJGxhYmVscyR0aXRsZSkgJT4lIHNlbGVjdCh0aXNzdWUpCiAgZ2VuZV90aXNzdWVzID0gYXMuY2hhcmFjdGVyKGFzLnZlY3RvcihnZW5lX3Rpc3N1ZXMkdGlzc3VlKSkKICBwcmludChwYXN0ZShnZW5lX25hbWUsIHBhc3RlKGdlbmVfdGlzc3VlcykpKQogIHRpdGxlID0gcGFzdGUwKGdlbmVfbmFtZSwgJyAoJywgcGFzdGUoZ2VuZV90aXNzdWVzLCBzZXA9JywgJyksICcpJykKICBwID0gcCArIGxhYnModGl0bGU9dGl0bGUpCiAgcGxvdHNbW2dlbmVfbmFtZV1dID0gcAp9CnBsb3RzLmNvbWJpbmVkIDwtIHBsb3RfZ3JpZChwbG90bGlzdCA9IHBsb3RzLCBuY29sID0gbkNvbCkKaW52aXNpYmxlKHggPSBsYXBwbHkoWCA9IHBsb3RzLmNvbWJpbmVkLCBGVU4gPSBwcmludCkpCmdnc2F2ZSgnZmFjc19mZWF0dXJlcGxvdF90b3Bfb3JnYW5fbWFya2Vycy5wZGYnLCBoZWlnaHQgPSA0MCwgd2lkdGg9MTUpCmBgYAoK</div>
 
 
 

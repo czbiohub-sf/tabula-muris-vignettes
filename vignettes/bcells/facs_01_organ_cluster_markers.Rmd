@@ -8,103 +8,68 @@ library(tidyverse)
 library(here)
 source(here('vignettes', 'bcells', 'common.R'))
 
-load(here('vignettes', 'bcells', 'facs_cd19.Robj'))
+load(here('vignettes', 'bcells', 'tissues_enough_cells.Robj'))
 ```
 
 
-```{r}
-table(tiss_facs_cd19@ident)
-```
-
+How many cells do we have per tissue?
 
 ```{r}
-cluster.markers = FindAllMarkers(object = tiss_facs_cd19, only.pos = TRUE, min.pct = 0.25, thresh.use = 0.25)
-head(cluster.markers)
+table(tiss_tissues_enough_cells@meta.data$tissue)
 ```
 
 ```{r}
-cluster.markers %>% group_by(cluster) %>% top_n(-10, p_val_adj)
+tissues.enough.cells = table(tiss_tissues_enough_cells@meta.data$tissue) > 30
+tissues.enough.cells = tissues.enough.cells[tissues.enough.cells]
+tiss_facs_tissues_enough_cells = SubsetData(tiss_tissues_enough_cells, subset.name='tissue', 
+                                            accept.value = names(tissues.enough.cells))
+sort(unique(tiss_facs_tissues_enough_cells@meta.data$tissue))
+table(tiss_facs_tissues_enough_cells@meta.data$tissue)
+dim(tiss_tissues_enough_cells@scale.data)
+dim(tiss_facs_tissues_enough_cells@scale.data)
 ```
 
+
+## Get differential expression between tissues
 ```{r}
-write_markers(cluster.markers, here('vignettes', 'bcells', 'facs_cluster_markers.csv'))
-```
-
-
-
-```{r}
-top_cluster_markers = cluster.markers %>% group_by(ident) %>% top_n(-10, p_val_adj)
-```
-
-
-```{r, fig.height=40}
-nCol = 4
-plots = FeaturePlot(tiss_facs_cd19, features.plot = sort(unique(top_cluster_markers$gene)), 
-                    do.return = TRUE, nCol = nCol, no.axes=TRUE, 
-                    # Light grey to 
-                    cols.use=c('lightgrey', '#008080'))
-for (p in plots){
-  gene_name = p$labels$title
-  gene_tissues = top_organ_markers %>% filter(gene == p$labels$title) %>% select(tissue)
-  gene_tissues = as.character(as.vector(gene_tissues$tissue))
-  print(paste(gene_name, paste(gene_tissues)))
-  title = paste0(gene_name, ' (', paste(gene_tissues, sep=', '), ')')
-  p = p + labs(title=title)
-  plots[[gene_name]] = p
-}
-plots.combined <- plot_grid(plotlist = plots, ncol = nCol)
-invisible(x = lapply(X = plots.combined, FUN = print))
-ggsave('facs_featureplot_top_cluster_markers.pdf', height = 40, width=15)
-```
-
-
-```{r}
-organ_markers = find_markers(tiss_facs_cd19, 'tissue')
+organ_markers = find_markers(tiss_facs_tissues_enough_cells, 'tissue')
+write_csv(organ_markers, here('vignettes', 'bcells', 'facs_tissue_markers.csv'))
 head(organ_markers)
 ```
 
-```{r}
-tissue_cell_counts = table(tiss_facs_cd19@meta.data$tissue)
-print(tissue_cell_counts)
-
-tissues_with_enough_cells = tissue_cell_counts[tissue_cell_counts > 50]
-tissues_with_enough_cells
-```
-
 
 ```{r}
-organ_markers_enough_cells = filter(organ_markers, tissue %in% names(tissues_with_enough_cells))
-organ_markers_enough_cells
+ggplot(data=organ_markers, aes(x=p_val_adj)) + geom_histogram() + facet_grid(~tissue)
 ```
 
 
 
 ```{r}
-write_markers(organ_markers_enough_cells, '~/tabula-muris-vignettes/vignettes/bcells/tissue_markers.csv')
-```
-
-
-```{r}
-ggplot(data=organ_markers_enough_cells, aes(x=p_val)) + geom_histogram() + facet_grid(~tissue)
-```
-```{r}
-ggplot(data=organ_markers_enough_cells, aes(x=p_val_adj)) + geom_histogram() + facet_grid(~tissue)
-```
-```{r}
-library(tidyverse)
-```
-
-
-
-```{r}
-top_organ_markers = organ_markers_enough_cells %>% group_by(tissue) %>% top_n(-10, p_val_adj)
+top_organ_markers = organ_markers %>% group_by(tissue) %>% top_n(-10, p_val_adj)
+write_csv(organ_markers, here('vignettes', 'bcells', 'facs_tissue_markers_top10_per_tissue.csv'))
+genes.to.plot = sort(unique(top_organ_markers$gene))
 top_organ_markers
+```
+
+```{r}
+?sort
+```
+
+
+```{r}
+top_organ_markers = organ_markers %>% group_by(tissue) %>% top_n(-3, p_val_adj)
+genes.to.plot = sort(unique(top_organ_markers$gene), decreasing=TRUE)
+print(length(genes.to.plot))
+
+
+RidgePlot(tiss_tissues_enough_cells, genes.to.plot, group.by='tissue')
+DotPlot(tiss_tissues_enough_cells, genes.to.plot, group.by='tissue')
 ```
 
 
 ```{r, fig.height=40}
 nCol = 4
-plots = FeaturePlot(tiss_facs_cd19, features.plot = sort(unique(top_organ_markers$gene)), 
+plots = FeaturePlot(tiss_tissues_enough_cells, features.plot = genes.to.plot, 
                     do.return = TRUE, nCol = nCol, no.axes=TRUE, 
                     # Light grey to 
                     cols.use=c('lightgrey', '#008080'))

@@ -176,50 +176,9 @@ $(document).ready(function () {
 <p>Try executing this chunk by clicking the <em>Run</em> button within the chunk or by placing your cursor inside it and pressing <em>Cmd+Shift+Enter</em>.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShTZXVyYXQpXG5gYGAifQ== -->
-<pre class="r"><code>library(Seurat)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBnZ3Bsb3QyXG5Mb2FkaW5nIHJlcXVpcmVkIHBhY2thZ2U6IGNvd3Bsb3RcblxuQXR0YWNoaW5nIHBhY2thZ2U6IOKAmGNvd3Bsb3TigJlcblxuVGhlIGZvbGxvd2luZyBvYmplY3QgaXMgbWFza2VkIGZyb20g4oCYcGFja2FnZTpnZ3Bsb3Qy4oCZOlxuXG4gICAgZ2dzYXZlXG5cbkxvYWRpbmcgcmVxdWlyZWQgcGFja2FnZTogTWF0cml4XG4ifQ== -->
-<pre><code>Loading required package: ggplot2
-Loading required package: cowplot
-
-Attaching package: ‘cowplot’
-
-The following object is masked from ‘package:ggplot2’:
-
-    ggsave
-
-Loading required package: Matrix</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShoZXJlKVxuYGBgIn0= -->
-<pre class="r"><code>library(here)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiaGVyZSgpIHN0YXJ0cyBhdCAvaG9tZS9yc3R1ZGlvL3RhYnVsYS1tdXJpcy12aWduZXR0ZXNcbiJ9 -->
-<pre><code>here() starts at /home/rstudio/tabula-muris-vignettes</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0aWR5dmVyc2UpXG5gYGAifQ== -->
-<pre class="r"><code>library(tidyverse)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXHUwMDFiWzMwbeKUgOKUgCBcdTAwMWJbMW1BdHRhY2hpbmcgcGFja2FnZXNcdTAwMWJbMjJtIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCB0aWR5dmVyc2UgMS4yLjEg4pSA4pSAXHUwMDFiWzM5bVxuXHUwMDFiWzMwbVx1MDAxYlszMm3inJRcdTAwMWJbMzBtIFx1MDAxYlszNG10aWJibGUgXHUwMDFiWzMwbSAxLjMuNCAgICAgXHUwMDFiWzMybeKclFx1MDAxYlszMG0gXHUwMDFiWzM0bXB1cnJyICBcdTAwMWJbMzBtIDAuMi40XG5cdTAwMWJbMzJt4pyUXHUwMDFiWzMwbSBcdTAwMWJbMzRtdGlkeXIgIFx1MDAxYlszMG0gMC43LjIgICAgIFx1MDAxYlszMm3inJRcdTAwMWJbMzBtIFx1MDAxYlszNG1kcGx5ciAgXHUwMDFiWzMwbSAwLjcuNFxuXHUwMDFiWzMybeKclFx1MDAxYlszMG0gXHUwMDFiWzM0bXJlYWRyICBcdTAwMWJbMzBtIDEuMS4xICAgICBcdTAwMWJbMzJt4pyUXHUwMDFiWzMwbSBcdTAwMWJbMzRtc3RyaW5nclx1MDAxYlszMG0gMS4yLjBcblx1MDAxYlszMm3inJRcdTAwMWJbMzBtIFx1MDAxYlszNG10aWJibGUgXHUwMDFiWzMwbSAxLjMuNCAgICAgXHUwMDFiWzMybeKclFx1MDAxYlszMG0gXHUwMDFiWzM0bWZvcmNhdHNcdTAwMWJbMzBtIDAuMi4wXHUwMDFiWzM5bVxuXHUwMDFiWzMwbeKUgOKUgCBcdTAwMWJbMW1Db25mbGljdHNcdTAwMWJbMjJtIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCB0aWR5dmVyc2VfY29uZmxpY3RzKCkg4pSA4pSAXG5cdTAwMWJbMzFt4pyWXHUwMDFiWzMwbSBcdTAwMWJbMzRtZHBseXJcdTAwMWJbMzBtOjpcdTAwMWJbMzJtY29tYmluZSgpXHUwMDFiWzMwbSAgICAgICAgIG1hc2tzIFx1MDAxYlszNG1CaW9iYXNlXHUwMDFiWzMwbTo6Y29tYmluZSgpLCBcdTAwMWJbMzRtQmlvY0dlbmVyaWNzXHUwMDFiWzMwbTo6Y29tYmluZSgpXG5cdTAwMWJbMzFt4pyWXHUwMDFiWzMwbSBcdTAwMWJbMzRtdGlkeXJcdTAwMWJbMzBtOjpcdTAwMWJbMzJtZXhwYW5kKClcdTAwMWJbMzBtICAgICAgICAgIG1hc2tzIFx1MDAxYlszNG1NYXRyaXhcdTAwMWJbMzBtOjpleHBhbmQoKVxuXHUwMDFiWzMxbeKcllx1MDAxYlszMG0gXHUwMDFiWzM0bWRwbHlyXHUwMDFiWzMwbTo6XHUwMDFiWzMybWZpbHRlcigpXHUwMDFiWzMwbSAgICAgICAgICBtYXNrcyBcdTAwMWJbMzRtc3RhdHNcdTAwMWJbMzBtOjpmaWx0ZXIoKVxuXHUwMDFiWzMxbeKcllx1MDAxYlszMG0gXHUwMDFiWzM0bWNvd3Bsb3RcdTAwMWJbMzBtOjpcdTAwMWJbMzJtZ2dzYXZlKClcdTAwMWJbMzBtICAgICAgICBtYXNrcyBcdTAwMWJbMzRtZ2dwbG90Mlx1MDAxYlszMG06Omdnc2F2ZSgpXG5cdTAwMWJbMzFt4pyWXHUwMDFiWzMwbSBcdTAwMWJbMzRtZHBseXJcdTAwMWJbMzBtOjpcdTAwMWJbMzJtbGFnKClcdTAwMWJbMzBtICAgICAgICAgICAgIG1hc2tzIFx1MDAxYlszNG1zdGF0c1x1MDAxYlszMG06OmxhZygpXG5cdTAwMWJbMzFt4pyWXHUwMDFiWzMwbSBcdTAwMWJbMzRtQmlvY0dlbmVyaWNzXHUwMDFiWzMwbTo6XHUwMDFiWzMybVBvc2l0aW9uKClcdTAwMWJbMzBtIG1hc2tzIFx1MDAxYlszNG1nZ3Bsb3QyXHUwMDFiWzMwbTo6UG9zaXRpb24oKSwgXHUwMDFiWzM0bWJhc2VcdTAwMWJbMzBtOjpQb3NpdGlvbigpXHUwMDFiWzM5bVxuIn0= -->
-<pre><code>[30m── [1mAttaching packages[22m ─────────────────────────────────────────────────────────────────── tidyverse 1.2.1 ──[39m
-[30m[32m✔[30m [34mtibble [30m 1.3.4     [32m✔[30m [34mpurrr  [30m 0.2.4
-[32m✔[30m [34mtidyr  [30m 0.7.2     [32m✔[30m [34mdplyr  [30m 0.7.4
-[32m✔[30m [34mreadr  [30m 1.1.1     [32m✔[30m [34mstringr[30m 1.2.0
-[32m✔[30m [34mtibble [30m 1.3.4     [32m✔[30m [34mforcats[30m 0.2.0[39m
-[30m── [1mConflicts[22m ────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
-[31m✖[30m [34mdplyr[30m::[32mcombine()[30m         masks [34mBiobase[30m::combine(), [34mBiocGenerics[30m::combine()
-[31m✖[30m [34mtidyr[30m::[32mexpand()[30m          masks [34mMatrix[30m::expand()
-[31m✖[30m [34mdplyr[30m::[32mfilter()[30m          masks [34mstats[30m::filter()
-[31m✖[30m [34mcowplot[30m::[32mggsave()[30m        masks [34mggplot2[30m::ggsave()
-[31m✖[30m [34mdplyr[30m::[32mlag()[30m             masks [34mstats[30m::lag()
-[31m✖[30m [34mBiocGenerics[30m::[32mPosition()[30m masks [34mggplot2[30m::Position(), [34mbase[30m::Position()[39m</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShvbnRvbG9neUluZGV4KVxubGlicmFyeSh0aWR5dmVyc2UpXG5jZWxsX29udG9sb2d5ID0gZ2V0X29udG9sb2d5KCdodHRwczovL3Jhdy5naXRodWJ1c2VyY29udGVudC5jb20vb2JvcGhlbm90eXBlL2NlbGwtb250b2xvZ3kvbWFzdGVyL2NsLWJhc2ljLm9ibycsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgIGV4dHJhY3RfdGFncz0nZXZlcnl0aGluZycpXG5zb3VyY2UoaGVyZSgndmlnbmV0dGVzJywgJ2JjZWxscycsICdjb21tb24uUicpKVxuYGBgIn0= -->
-<pre class="r"><code>library(ontologyIndex)
-library(tidyverse)
-cell_ontology = get_ontology('https://raw.githubusercontent.com/obophenotype/cell-ontology/master/cl-basic.obo',
-                             extract_tags='everything')
-source(here('vignettes', 'bcells', 'common.R'))</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc291cmNlKGhlcmUoJ3ZpZ25ldHRlcycsICdiY2VsbHMnLCAnY29tbW9uLlInKSlcblxuYGBgIn0= -->
+<pre class="r"><code>source(here('vignettes', 'bcells', 'common.R'))
+</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoiUGFyc2VkIHdpdGggY29sdW1uIHNwZWNpZmljYXRpb246XG5jb2xzKFxuICBgTUdJIEdlbmUvTWFya2VyIElEYCA9IGNvbF9jaGFyYWN0ZXIoKSxcbiAgU3ltYm9sID0gY29sX2NoYXJhY3RlcigpLFxuICBOYW1lID0gY29sX2NoYXJhY3RlcigpLFxuICBDaHIgPSBjb2xfY2hhcmFjdGVyKCksXG4gIFF1YWxpZmllciA9IGNvbF9jaGFyYWN0ZXIoKSxcbiAgYEFubm90YXRlZCBUZXJtYCA9IGNvbF9jaGFyYWN0ZXIoKSxcbiAgQ29udGV4dCA9IGNvbF9jaGFyYWN0ZXIoKSxcbiAgUHJvdGVvZm9ybSA9IGNvbF9jaGFyYWN0ZXIoKSxcbiAgRXZpZGVuY2UgPSBjb2xfY2hhcmFjdGVyKCksXG4gIGBJbmZlcnJlZCBGcm9tYCA9IGNvbF9jaGFyYWN0ZXIoKSxcbiAgYFJlZmVyZW5jZShzKWAgPSBjb2xfY2hhcmFjdGVyKCksXG4gIGNhdGVnb3J5ID0gY29sX2NoYXJhY3RlcigpXG4pXG4ifQ== -->
 <pre><code>Parsed with column specification:
@@ -238,12 +197,6 @@ cols(
   category = col_character()
 )</code></pre>
 <!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBGcm9tOiBodHRwOi8vd3d3Lm9udG9iZWUub3JnL29udG9sb2d5L0NMP2lyaT1odHRwOi8vcHVybC5vYm9saWJyYXJ5Lm9yZy9vYm8vQ0xfMDAwMDczOFxuIyBMeW1waG9jeXRlcyBhcmUgYSBkZXNjZW5kYW50IChjaGlsZCkgb2YgbGV1a29jeXRlczogaHR0cDovL3d3dy5vbnRvYmVlLm9yZy9vbnRvbG9neS9DTD9pcmk9aHR0cDovL3B1cmwub2JvbGlicmFyeS5vcmcvb2JvL0NMXzAwMDA1NDJcbmxldWtvY3l0ZV9pZCA9IFwiQ0w6MDAwMDczOFwiXG5sZXVrb2N5dGVfb3JfZGVzY2VuZGFudCA9IGdldF9kZXNjZW5kYW50cyhjZWxsX29udG9sb2d5LCByb290cz1sZXVrb2N5dGVfaWQpXG5gYGAifQ== -->
-<pre class="r"><code># From: http://www.ontobee.org/ontology/CL?iri=http://purl.obolibrary.org/obo/CL_0000738
-# Lymphocytes are a descendant (child) of leukocytes: http://www.ontobee.org/ontology/CL?iri=http://purl.obolibrary.org/obo/CL_0000542
-leukocyte_id = &quot;CL:0000738&quot;
-leukocyte_or_descendant = get_descendants(cell_ontology, roots=leukocyte_id)</code></pre>
-<!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->

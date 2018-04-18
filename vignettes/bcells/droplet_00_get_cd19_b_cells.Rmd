@@ -17,6 +17,7 @@ When you click the **Knit** button a document will be generated that includes bo
 library(Seurat)
 library(tidyverse)
 library(here)
+source(here('vignettes', 'bcells', 'common.R'))
 
 load(here('vignettes', 'bcells', 'droplet_immune.Robj'))
 ```
@@ -39,7 +40,7 @@ PCElbowPlot(object = tiss_droplet_immune)
 Choose the number of principal components to use.
 ```{r}
 # Set number of principal components.
-n.pcs = 8
+n.pcs = 13
 ```
 
 The clustering is performed based on a nearest neighbors graph. Cells that have similar expression will be joined together. The Louvain algorithm looks for groups of cells with high modularity--more connections within the group than between groups. The resolution parameter determines the scale...higher resolution will give more clusters, lower resolution will give fewer.
@@ -60,6 +61,7 @@ To visualize
 tiss_droplet_immune <- RunTSNE(object = tiss_droplet_immune, dims.use = 1:n.pcs, seed.use = 10, perplexity=30)
 ```
 
+
 ```{r}
 TSNEPlot(tiss_droplet_immune)
 TSNEPlot(tiss_droplet_immune, group.by = 'tissue')
@@ -70,18 +72,26 @@ TSNEPlot(tiss_droplet_immune, group.by = 'channel')
 ```
 
 ```{r}
+save(tiss_droplet_immune, file=here('vignettes', 'bcells', 'droplet_immune_clustered.Robj'))
+```
+
+
+```{r}
 table(tiss_droplet_immune@meta.data$cell_ontology_class, tiss_droplet_immune@ident)
 ```
 
 ```{r}
-FeaturePlot(tiss_droplet_immune, c('Cd19', # B cell marker
-                                   'Ptprc', # Immune cell marker
-                                   "Cd79a"))  # T cell marker
+genes_to_check = c('Cd19', # B cell marker
+                   'Ptprc' # Immune cell marker
+                   )
+FeaturePlot(tiss_droplet_immune, genes_to_check)
+VlnPlot(tiss_droplet_immune, genes_to_check)
+DotPlot(tiss_droplet_immune, genes_to_check)
 ```
 
 
 ```{r}
-tiss_droplet_cd19 = SubsetData(object = tiss_droplet_immune, ident.use = c(0, 3, 5))
+tiss_droplet_cd19 = SubsetData(object = tiss_droplet_immune, ident.use = c(0, 3, 9))
 tiss_droplet_cd19 = process_tissue(tiss_droplet_cd19, scale=1e4)
 ```
 
@@ -99,7 +109,7 @@ PCElbowPlot(object = tiss_droplet_cd19)
 
 ```{r}
 # Set number of principal components.
-sub.n.pcs = 7
+sub.n.pcs = 6
 ```
 
 The clustering is performed based on a nearest neighbors graph. Cells that have similar expression will be joined together. The Louvain algorithm looks for groups of cells with high modularity--more connections within the group than between groups. The resolution parameter determines the scale...higher resolution will give more clusters, lower resolution will give fewer.

@@ -63,14 +63,16 @@ tiss_droplet_immune <- RunTSNE(object = tiss_droplet_immune, dims.use = 1:n.pcs,
 
 
 ```{r}
-TSNEPlot(tiss_droplet_immune)
-TSNEPlot(tiss_droplet_immune, group.by = 'tissue')
-TSNEPlot(tiss_droplet_immune, group.by = 'cell_ontology_class')
-TSNEPlot(tiss_droplet_immune, group.by = 'mouse.sex')
-TSNEPlot(tiss_droplet_immune, group.by = 'mouse.id')
-TSNEPlot(tiss_droplet_immune, group.by = 'channel')
+TSNEPlot(tiss_droplet_immune, no.axes=TRUE)
+TSNEPlot(tiss_droplet_immune, group.by = 'tissue',  colors.use=tissue_colors, no.axes=TRUE)
+TSNEPlot(tiss_droplet_immune, group.by = 'cell_ontology_class', no.axes=TRUE)
+TSNEPlot(tiss_droplet_immune, group.by = 'mouse.sex', no.axes=TRUE)
+TSNEPlot(tiss_droplet_immune, group.by = 'mouse.id', no.axes=TRUE)
+TSNEPlot(tiss_droplet_immune, group.by = 'plate.barcode', no.legend=TRUE, no.axes=TRUE)
 ```
 
+
+Save the clustered immune cells for later.
 ```{r}
 save(tiss_droplet_immune, file=here('vignettes', 'bcells', 'droplet_immune_clustered.Robj'))
 ```
@@ -131,14 +133,31 @@ tiss_droplet_cd19 <- RunTSNE(object = tiss_droplet_cd19, dims.use = 1:n.pcs, see
 ```
 
 ```{r}
-TSNEPlot(tiss_droplet_cd19)
-TSNEPlot(tiss_droplet_cd19, group.by = 'tissue')
-TSNEPlot(tiss_droplet_cd19, group.by = 'cell_ontology_class')
-TSNEPlot(tiss_droplet_cd19, group.by = 'free_annotation')
-TSNEPlot(tiss_droplet_cd19, group.by = 'mouse.sex')
-TSNEPlot(tiss_droplet_cd19, group.by = 'mouse.id')
-TSNEPlot(tiss_droplet_cd19, group.by = 'channel')
+tissue_colors_from_paper = read.csv('~/tabula-muris/00_data_ingest/15_color_palette/tissue_colors.csv', row.names=1, 
+         stringsAsFactors=FALSE)
+tissues_in_data = sort(unique(as.character(tiss_droplet_cd19@meta.data$tissue)))
+tissue_colors = tissue_colors_from_paper[tissues_in_data, "color"]
+tissue_colors
 ```
+
+
+```{r}
+TSNEPlot(tiss_droplet_cd19, no.axes=TRUE)
+TSNEPlot(tiss_droplet_cd19, group.by = 'tissue',  colors.use=tissue_colors, no.axes=TRUE)
+TSNEPlot(tiss_droplet_cd19, group.by = 'cell_ontology_class', no.axes=TRUE)
+TSNEPlot(tiss_droplet_cd19, group.by = 'mouse.sex', no.axes=TRUE)
+TSNEPlot(tiss_droplet_cd19, group.by = 'mouse.id', no.axes=TRUE)
+TSNEPlot(tiss_droplet_cd19, group.by = 'plate.barcode', no.legend=TRUE, no.axes=TRUE)
+```
+
+
+
+```{r}
+table(tiss_droplet_cd19@meta.data$tissue, tiss_droplet_cd19@ident)
+table(tiss_droplet_cd19@meta.data$cell_ontology_class, tiss_droplet_cd19@ident)
+```
+
+
 
 ```{r}
 tiss_droplet_cd19 = BuildClusterTree(tiss_droplet_cd19)
@@ -149,7 +168,7 @@ PlotClusterTree(tiss_droplet_cd19)
 ## Stash the cluster identities
 
 ```{r}
-tiss_droplet_cd19@meta.data[,'pca.cluster.ids'] = as.numeric(tiss_droplet_cd19@ident)
+tiss_droplet_cd19@meta.data[,'original.cluster.ids'] = as.numeric(tiss_droplet_cd19@ident)
 ```
 
 
@@ -165,6 +184,6 @@ dim(tiss_droplet_cd19@scale.data)
 
 
 ```{r}
-save(tiss_droplet_cd19, file = here('vignettes', 'immune', 'droplet_cd19.Robj'))
+save(tiss_droplet_cd19, file = here('vignettes', 'bcells', 'droplet_cd19.Robj'))
 ```
 

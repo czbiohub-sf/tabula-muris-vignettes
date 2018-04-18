@@ -8,31 +8,162 @@ library(tidyverse)
 library(here)
 source(here('vignettes', 'bcells', 'common.R'))
 
-load(here('vignettes', 'bcells', 'tissues_enough_cells.Robj'))
+load(here('vignettes', 'bcells', 'facs_cd19.Robj'))
 ```
 
 
 How many cells do we have per tissue?
 
 ```{r}
-table(tiss_tissues_enough_cells@meta.data$tissue)
+table(tiss_facs_cd19@meta.data$tissue)
 ```
 
 ```{r}
-tissues.enough.cells = table(tiss_tissues_enough_cells@meta.data$tissue) > 30
+tissues.enough.cells = table(tiss_facs_cd19@meta.data$tissue) > 30
 tissues.enough.cells = tissues.enough.cells[tissues.enough.cells]
-tiss_facs_tissues_enough_cells = SubsetData(tiss_tissues_enough_cells, subset.name='tissue', 
+tiss_facs_tissues_enough_cells = SubsetData(tiss_facs_cd19, subset.name='tissue', 
                                             accept.value = names(tissues.enough.cells))
 sort(unique(tiss_facs_tissues_enough_cells@meta.data$tissue))
 table(tiss_facs_tissues_enough_cells@meta.data$tissue)
-dim(tiss_tissues_enough_cells@scale.data)
+dim(tiss_facs_tissues_enough_cells@scale.data)
 dim(tiss_facs_tissues_enough_cells@scale.data)
 ```
+
+## Set "Tissue" as the "ident" for further analysis
+
+```{r}
+annotation = 'tissue'
+
+annotations = tiss_facs_tissues_enough_cells@meta.data[,annotation]
+unique_annotations = unique(annotations)
+enumerated_annotations = 0:(length(unique_annotations)-1)
+
+annotation_ident = as.factor(plyr::mapvalues(x = annotations, from = unique_annotations, to = enumerated_annotations))
+names(annotation_ident) = names(tiss_facs_tissues_enough_cells@ident)
+tiss_facs_tissues_enough_cells@ident = annotation_ident
+```
+
+
+## Hierarchical relationship between tissues based on average expression
+```{r}
+library(ape)
+
+tiss_facs_tissues_enough_cells = BuildClusterTree(tiss_facs_tissues_enough_cells, do.plot = FALSE)
+
+data.tree = tiss_facs_tissues_enough_cells@cluster.tree[[1]]
+data.tree$tip.label = unique_annotations
+
+plot.phylo(x = data.tree, direction = "downwards")
+nodelabels()
+```
+
+## Differential expression of peripheral tissues vs rest
+
+```{r}
+node7_markers = FindMarkersNode(object=tiss_facs_tissues_enough_cells, node=7)
+head(node7_markers)
+```
+
+```{r}
+head(node7_markers)
+```
+```{r}
+write_markers(node7_markers, here('vignettes', 'bcells', 'facs_tissue_node7_markers.csv'))
+```
+
+
+```{r}
+top_node7_markers = head(node7_markers, n=12)
+node7_genes = rownames(top_node7_markers)
+top_node7_markers
+```
+
+```{r, fig.width=12, fig.height=8}
+RidgePlot(tiss_facs_tissues_enough_cells, node7_genes, group.by='tissue')
+```
+
+```{r, fig.width=8}
+DotPlot(tiss_facs_tissues_enough_cells, rev(node7_genes), group.by='tissue')
+```
+## Get subtissues of fat
+
+
+```{r}
+subtissue_if_fat = ifelse(tiss_facs_tissues_enough_cells@meta.data$tissue == "Fat",
+                          paste(":", tiss_facs_tissues_enough_cells@meta.data$subtissue), "")
+tiss_facs_tissues_enough_cells@meta.data[, 'tissue_subtissue_fat'] = 
+  paste0(tiss_facs_tissues_enough_cells@meta.data$tissue, subtissue_if_fat)
+
+tiss_facs_tissues_enough_cells@meta.data[, 'tissue_subtissue'] = 
+  paste0(tiss_facs_tissues_enough_cells@meta.data$tissue, ": ", tiss_facs_tissues_enough_cells@meta.data$subtissue)
+```
+
+
+```{r}
+DotPlot(tiss_facs_tissues_enough_cells, rev(node7_genes), group.by='tissue_subtissue_fat')
+```
+
+
+
+
+
+## Set "tissue_subtissue_fat" as the "ident" for further analysis
+
+```{r}
+annotation = 'tissue_subtissue_fat'
+
+annotations = tiss_facs_tissues_enough_cells@meta.data[,annotation]
+unique_annotations = unique(annotations)
+enumerated_annotations = 0:(length(unique_annotations)-1)
+
+annotation_ident = as.factor(plyr::mapvalues(x = annotations, from = unique_annotations, to = enumerated_annotations))
+names(annotation_ident) = names(tiss_facs_tissues_enough_cells@ident)
+tiss_facs_tissues_enough_cells@ident = annotation_ident
+```
+
+
+```{r}
+table(tiss_facs_tissues_enough_cells@meta.data$tissue_subtissue_fat)
+```
+
+## Hierarchical relationship between tissues and subtissues based on average expression
+```{r, fig.height=8}
+library(ape)
+
+tiss_facs_tissues_enough_cells = BuildClusterTree(tiss_facs_tissues_enough_cells, do.plot = FALSE)
+
+data.tree = tiss_facs_tissues_enough_cells@cluster.tree[[1]]
+data.tree$tip.label = unique_annotations
+
+plot.phylo(x = data.tree, direction = "downwards")
+nodelabels()
+```
+
+
+```{r}
+tissue_subtissue_of_interest = "Fat: BAT"
+enumerated_annotations[unique_annotations == tissue_subtissue_of_interest]
+```
+
+
+```{r}
+fat_subtissues = grep("Fat", unique_annotations, value = TRUE)
+
+fat_subtissue_markers = data.frame()
+for (fat_subtissue in fat_subtissues){
+  ident = enumerated_annotations[unique_annotations == fat_subtissue]
+  subtissue_markers = FindMarkers(tiss_facs_tissues_enough_cells, ident.1 = ident)
+  subtissue_markers[, "tissue_subtissue"] = fat_subtissue
+  subtissue_markers[, "genes"] = rownames(fat_subtissue)
+  fat_subtissue_markers = rbind(fat_subtissue_markers, subtissue_markers)
+}
+```
+
 
 
 ## Get differential expression between tissues
 ```{r}
-organ_markers = find_markers(tiss_facs_tissues_enough_cells, 'tissue')
+organ_markers = FindAllMarkers(object = tiss_facs_tissues_enough_cells, only.pos = TRUE, min.pct = 0.25, thresh.use = 0.2)
 write_csv(organ_markers, here('vignettes', 'bcells', 'facs_tissue_markers.csv'))
 head(organ_markers)
 ```
@@ -46,30 +177,29 @@ ggplot(data=organ_markers, aes(x=p_val_adj)) + geom_histogram() + facet_grid(~ti
 
 ```{r}
 top_organ_markers = organ_markers %>% group_by(tissue) %>% top_n(-10, p_val_adj)
-write_csv(organ_markers, here('vignettes', 'bcells', 'facs_tissue_markers_top10_per_tissue.csv'))
+write_csv(top_organ_markers, here('vignettes', 'bcells', 'facs_tissue_markers_top10_per_tissue.csv'))
 genes.to.plot = sort(unique(top_organ_markers$gene))
 top_organ_markers
 ```
 
-```{r}
-?sort
-```
 
 
-```{r}
+```{r, fig.width=12, fig.height=16}
 top_organ_markers = organ_markers %>% group_by(tissue) %>% top_n(-3, p_val_adj)
-genes.to.plot = sort(unique(top_organ_markers$gene), decreasing=TRUE)
+genes.to.plot = sort(unique(top_organ_markers$gene))
 print(length(genes.to.plot))
 
-
-RidgePlot(tiss_tissues_enough_cells, genes.to.plot, group.by='tissue')
-DotPlot(tiss_tissues_enough_cells, genes.to.plot, group.by='tissue')
+RidgePlot(tiss_facs_tissues_enough_cells, genes.to.plot, group.by='tissue')
+```
+```{r, fig.width=12}
+# Need to reverse gene order so increases alphabetically left to right
+DotPlot(tiss_facs_tissues_enough_cells, rev(genes.to.plot), group.by='tissue')
 ```
 
 
 ```{r, fig.height=40}
 nCol = 4
-plots = FeaturePlot(tiss_tissues_enough_cells, features.plot = genes.to.plot, 
+plots = FeaturePlot(tiss_facs_tissues_enough_cells, features.plot = genes.to.plot, 
                     do.return = TRUE, nCol = nCol, no.axes=TRUE, 
                     # Light grey to 
                     cols.use=c('lightgrey', '#008080'))
@@ -86,4 +216,3 @@ plots.combined <- plot_grid(plotlist = plots, ncol = nCol)
 invisible(x = lapply(X = plots.combined, FUN = print))
 ggsave('facs_featureplot_top_organ_markers.pdf', height = 40, width=15)
 ```
-

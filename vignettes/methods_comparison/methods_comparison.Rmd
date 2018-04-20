@@ -336,12 +336,12 @@ writetable(overlapMatrixNames,sprintf('%s_cell_ontologies.csv',tissuename))
 
 ```
 
-The graphical output is [here](https://github.com/czbiohub/tabula-muris-vignettes/blob/master/vignettes/methods_comparison/methods_comparison_diffExp.pdf).
+The graphical output is [here](https://github.com/czbiohub/tabula-muris-vignettes/blob/experiment-comparisons/vignettes/methods_comparison/methods_comparison_diffExp_blog.png).
 
 For this example we manually set the ```overlapMatrix```, that is, we forced the algorithm to compare cell ontologies that we matched by ontology name. The problem with doing so is that we are assuming that the annotations are consistent across all experiments but this might not necessarily be the case. Let's take the current example - while in Tabula muris we used [OBO Cell Ontology]( http://obofoundry.org/ontology/cl.html) structured and controlled vocabulary for cell types in animals, Han et al in the microwell seq paper took a dramaitcally different approach and have cell types named as ```Neutrophil_Npg_high``` and ```Neutrophil_Retngg_high```, for example.
 
 
-<embed src="https://github.com/czbiohub/tabula-muris-vignettes/blob/master/vignettes/methods_comparison/methods_comparison_diffExp.pdf" width="500" height="375" type='application/pdf'>
+<embed src="https://github.com/czbiohub/tabula-muris-vignettes/blob/experiment-comparisons/vignettes/methods_comparison/methods_comparison_diffExp_blog.png" width="500" height="375">
 
 In this example we have illustrated one way of comparing datasets that have been independently obtained without the need to re-analize the raw data, instead we take the fully analysed datasets and mix&match across experiments. As a challenge why don't you try to compare all cells from the same cell ontology across all organs, as for example ```macrophages```?
 

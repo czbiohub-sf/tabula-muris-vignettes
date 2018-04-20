@@ -1,38 +1,206 @@
+<!--
 ---
 title: "cell-classifier"
 author: "aopisco"
 date: "4/16/2018"
 output: html_document
 ---
+-->
+
 # Unsupervised methods for combining independent single-cell RNA sequencing experiments
 
-As we briefly mentioned in the previous post, instead of manually assigning which cells we should be comparing and verifying if there is any overlap, we want instead to build a map where we can project new experiments.
-We want to use Tabula muris as the reference dataset. because the data was annotated by field experts we want to trust such labels as ground-true and build on the top of that -- this might not be necessarilly the case and we should design a strategy to select the "properly" annotated cells, still need to explore this in much more detail... For now ```Seurat```&```scmap```...
-
-We start our quest for automatic ways of classifying data using Seurat
-[add here]
-
-Because this classifycells *always* classifies a cell we want to change to something that give us greys...
-[scmap](https://www-nature-com.ucsf.idm.oclc.org/articles/nmeth.4644) can map individual cells from a query sample to cell types in the reference (scmap-cluster) or to individual cells in a reference (scmap-cell).
-
-We start by installing the package from bioconductor:
+## Pre-required installation
+We start by installing the packages from bioconductor:
 ```{r}
 source("https://bioconductor.org/biocLite.R")
+biocLite("Seurat")
 biocLite("scmap")
 ```
 
 and then load the required libraries
 
 ```{r}
-library(SingleCellExperiment)
-library(scmap)
+
 library(here)
 library(tidyverse)
+library(stringr)
+
+library(Seurat)
+library(viridis)
+library(caret)
+library(mlbench)
+library(e1071)
+
+library(SingleCellExperiment)
+library(scmap)
+
 ```
+
+As we briefly mentioned in the previous post, instead of manually assigning which cells we should be comparing and verifying if there is any overlap, we want instead to build a map where we can project new experiments.
+We want to use Tabula muris as the reference dataset. because the data was annotated by field experts we want to trust such labels as ground-true and build on the top of that -- this might not be necessarilly the case and we should design a strategy to select the "properly" annotated cells, still need to explore this in much more detail... For now ```Seurat```&```scmap```...
+
+For Tabula muris data we read from files
+```{r}
+
+tm.droplet.matrix = readRDS(here("data-tabula-muris", "TM_droplet_mat.rds"))
+tm.droplet.metadata = read_csv(here("data-tabula-muris", "TM_droplet_metadata.csv"))
+
+tm.facs.matrix = readRDS(here("data-tabula-muris", "TM_facs_mat.rds"))
+tm.facs.metadata = read_csv(here("data-tabula-muris", "TM_facs_metadata.csv"))
+# 
+# microwell.matrix = readRDS(here("data-microwell-seq", "MCA_merged_mat.rds"))
+# microwell.metadata = read_csv(here("data-microwell-seq", "MCA_All-batch-removed-assignments.csv"))
+
+```
+
+The list of tissues available can be found by
+```{r}
+tiss.name.tm.droplet = unique(tm.droplet.metadata$tissue)
+tiss.name.tm.facs = unique(tm.facs.metadata$tissue)
+
+# tiss.name.microwellseq = unique(microwell.metadata$Tissue)
+```
+
+
+We choose a tissue of interest, e.g. bladder, and then use that for the analysis:
+```{r}
+droplet.tiss.interest = "Bladder"
+facs.tiss.interest = "Bladder"
+
+if (droplet.tiss.interest %in% tiss.name.tm.droplet){
+  tm.droplet.tiss <- tm.droplet.matrix[,tm.droplet.metadata$tissue==droplet.tiss.interest] 
+}
+
+if(facs.tiss.interest %in% tiss.name.tm.facs){
+  tm.facs.tiss <- tm.facs.matrix[,tm.facs.metadata$tissue==facs.tiss.interest]
+}
+
+
+
+#microwell.bladder <- microwell.matrix[,microwell.metadata$Tissue=="Bladder"]
+
+```
+
+
+We start our quest for automatic ways of classifying data using Seurat
+
+The libraries needed are
+```{r}
+# load(file=here("00_data_ingest", "04_tissue_robj_generated", "facs_Bladder_seurat_tiss.Robj"))
+tissFACS <- tm.facs.tiss
+# load(file=here("00_data_ingest", "04_tissue_robj_generated", "droplet_Bladder_seurat_tiss.Robj"))
+tissDROPLET <- tm.droplet.tiss
+```
+
+Build the random forest classifier to be used with ClassifyCells
+Useful if you want to use the same classifier with several sets of new data
+
+```{r}
+FACS_classes <- tissFACS@meta.data$cell_ontology_class
+classifierFACS <- BuildRFClassifier(tissFACS, training.classes = FACS_classes)
+
+
+tm.droplet.metadata.tiss <- tm.droplet.metadata[tm.droplet.metadata$tissue == droplet.tiss.interest,]
+tm.droplet.tiss.ann <- as.data.frame(tm.droplet.metadata.tiss, row.names = tm.droplet.metadata.tiss$cell)
+rownames(tm.droplet.tiss.ann) <- tm.droplet.tiss.ann[,1]
+tissDROPLET <- CreateSeuratObject(raw.data = tm.droplet.tiss, meta.data = tm.droplet.tiss.ann)
+DROPLET_classes = as_factor(tissDROPLET@meta.data$cell_ontology_class)
+classifierDROPLET <- BuildRFClassifier(tissDROPLET, training.classes = tissDROPLET@meta.data$cell_ontology_class)
+
+```
+
+```{r}
+
+tm.facs.metadata.tiss <- tm.facs.metadata[tm.facs.metadata$tissue == facs.tiss.interest,]
+tm.facs.tiss.ann <- as.data.frame(tm.facs.metadata.tiss, row.names = tm.facs.metadata.tiss$cell)
+rownames(tm.facs.tiss.ann) <- tm.facs.tiss.ann[,1]
+tissFACS <- CreateSeuratObject(raw.data = tm.facs.tiss, meta.data = tm.facs.tiss.ann)
+
+tissFACS@meta.data$cell_ontology_class <- replace(tissFACS@meta.data$cell_ontology_class, is.na(tissFACS@meta.data$cell_ontology_class), "notKnown") 
+FACS_classes = as_factor(tissFACS@meta.data$cell_ontology_class)
+classifierFACS <- BuildRFClassifier(tissFACS, training.classes = tissFACS@meta.data$cell_ontology_class)
+```
+
+
+Classify new data based on the cluster information of the provided object. Random Forests are used as the basis of the classification.
+
+Verify FACS classifier
+```{r}
+
+train.tissFACS <- SubsetData(object = tissFACS, cells.use = tissFACS@cell.names[seq(11,length(tissFACS@cell.names),100)])
+
+predicted.classes.tissFACS <- ClassifyCells(
+  object = train.tissFACS,
+  classifierFACS,
+  training.genes = NULL,
+  training.classes = NULL,
+  new.data = tissFACS@data
+)
+
+confusionMatrix(data = predicted.classes.tissFACS, reference = FACS_classes)
+```
+
+Verify DROPLET classifier
+```{r}
+
+
+train.tissDROPLET <- SubsetData(object = tissDROPLET, cells.use = tissDROPLET@cell.names[seq(11,length(tissDROPLET@cell.names),100)])
+
+predicted.classes.tissDROPLET <- ClassifyCells(
+  object = train.tissDROPLET,
+  classifierDROPLET,
+  training.genes = NULL,
+  training.classes = NULL,
+  new.data = tissDROPLET@data
+)
+
+confusionMatrix(data = predicted.classes.tissDROPLET, reference = DROPLET_classes)
+
+```
+
+Mix and match
+Classify DROPLET using FACS
+```{r}
+
+predicted.classes.tissDROPLET_usingFACS <- ClassifyCells(
+  object = train.tissFACS,
+  classifierFACS,
+  training.genes = NULL,
+  training.classes = NULL,
+  new.data = tissDROPLET@data
+)
+
+u = union(predicted.classes.tissDROPLET_usingFACS, DROPLET_classes)
+confusionMatrix(data = factor(predicted.classes.tissDROPLET_usingFACS, u), reference = factor(DROPLET_classes, u))
+
+```
+
+Classify FACS using DROPLET
+```{r}
+
+predicted.classes.tissFACS_usingDROPLET <- ClassifyCells(
+  object = train.tissDROPLET,
+  classifierDROPLET,
+  training.genes = NULL,
+  training.classes = NULL,
+  new.data = tissFACS@data
+)
+
+u = union(predicted.classes.tissFACS_usingDROPLET, FACS_classes)
+confusionMatrix(data = factor(predicted.classes.tissFACS_usingDROPLET, u), reference = factor(FACS_classes, u))
+
+```
+
+The union trick is necessary to account for the fact that sometimes the number of levels in the data and in the classifier don't match
+
+
+Because this classifycells *always* classifies a cell we want to change to something that give us greys...
+[scmap](https://www-nature-com.ucsf.idm.oclc.org/articles/nmeth.4644) can map individual cells from a query sample to cell types in the reference (scmap-cluster) or to individual cells in a reference (scmap-cell).
 
 ## scmap input
 If you already have a SingleCellExperiment object, skip this but if you have a matrix or a data frame containing expression data then you first need to create an `SingleCellExperiment` object containing your data. 
 
+<!--
 For Tabula muris data we read from files
 ```{r}
 
@@ -73,7 +241,7 @@ if(facs.tiss.interest %in% tiss.name.tm.facs){
 #microwell.bladder <- microwell.matrix[,microwell.metadata$Tissue=="Bladder"]
 
 ```
-
+-->
 Next we create the SingleCellExperiment objects.
 
 

@@ -77,7 +77,7 @@ table(tiss_facs_immune@meta.data$cell_ontology_class, tiss_facs_immune@ident)
 genes_to_check= c('Cd19', 'Ptprc')
 
 FeaturePlot(tiss_facs_immune, genes_to_check)
-VlnPlot(tiss_facs_immune, genes_to_check)
+RidgePlot(tiss_facs_immune, genes_to_check)
 DotPlot(tiss_facs_immune, genes_to_check)
 ```
 Save the clustered immune cells for later.
@@ -120,7 +120,7 @@ tiss_facs_cd19 <- FindClusters(object = tiss_facs_cd19, reduction.type = "pca", 
     resolution = sub.res.used, print.output = 0, save.SNN = TRUE)
 
 # If cells are too spread out, you can raise the perplexity. If you have few cells, try a lower perplexity (but never less than 10).
-tiss_facs_cd19 <- RunTSNE(object = tiss_facs_cd19, dims.use = 1:n.pcs, seed.use = 10, perplexity=30)
+tiss_facs_cd19 <- RunTSNE(object = tiss_facs_cd19, dims.use = 1:sub.n.pcs, seed.use = 10, perplexity=30)
 ```
 
 ```{r}

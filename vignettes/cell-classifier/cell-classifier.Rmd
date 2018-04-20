@@ -9,8 +9,8 @@ output: html_document
 
 # Unsupervised methods for combining independent single-cell RNA sequencing experiments
 
-## Pre-required installation
-We start by installing the packages from bioconductor:
+### Pre-required installation
+We start by installing the packages we need to build the cell classifiers from bioconductor:
 ```{r}
 source("https://bioconductor.org/biocLite.R")
 biocLite("Seurat")
@@ -20,7 +20,6 @@ biocLite("scmap")
 and then load the required libraries
 
 ```{r}
-
 library(here)
 library(tidyverse)
 library(stringr)
@@ -33,13 +32,13 @@ library(e1071)
 
 library(SingleCellExperiment)
 library(scmap)
-
 ```
 
-As we briefly mentioned in the previous post, instead of manually assigning which cells we should be comparing and verifying if there is any overlap, we want instead to build a map where we can project new experiments.
-We want to use Tabula muris as the reference dataset. because the data was annotated by field experts we want to trust such labels as ground-true and build on the top of that -- this might not be necessarilly the case and we should design a strategy to select the "properly" annotated cells, still need to explore this in much more detail... For now ```Seurat```&```scmap```...
+As we briefly mentioned in the previous post, instead of manually and arbitrarily deciding which cell ontologies we should be comparing and computing the overlaps at the level of differentially expressed genes, we want to have a method to map on the fly new experimental data to existing reference datasets.
 
-For Tabula muris data we read from files
+Given the broad collection of organs in Tabula muris it is natural to think of it as a possible reference dataset. Here we will exemplify how we can build the reference classifier using the buil-in functions of ```Seurat``` and the recently published ```scmap``` method.
+
+We can access Tabula muris data [here](https://github.com/czbiohub/tabula-muris-vignettes/tree/experiment-comparisons/data):
 ```{r}
 
 tm.droplet.matrix = readRDS(here("data-tabula-muris", "TM_droplet_mat.rds"))
@@ -47,13 +46,16 @@ tm.droplet.metadata = read_csv(here("data-tabula-muris", "TM_droplet_metadata.cs
 
 tm.facs.matrix = readRDS(here("data-tabula-muris", "TM_facs_mat.rds"))
 tm.facs.metadata = read_csv(here("data-tabula-muris", "TM_facs_metadata.csv"))
+```
+<!--
 # 
 # microwell.matrix = readRDS(here("data-microwell-seq", "MCA_merged_mat.rds"))
 # microwell.metadata = read_csv(here("data-microwell-seq", "MCA_All-batch-removed-assignments.csv"))
 
 ```
+-->
 
-The list of tissues available can be found by
+For speed reasons we will be demonstrating the methods for a single tissue. We can choose from the list of tissues available:
 ```{r}
 tiss.name.tm.droplet = unique(tm.droplet.metadata$tissue)
 tiss.name.tm.facs = unique(tm.facs.metadata$tissue)
@@ -62,7 +64,7 @@ tiss.name.tm.facs = unique(tm.facs.metadata$tissue)
 ```
 
 
-We choose a tissue of interest, e.g. bladder, and then use that for the analysis:
+Let us use ```Bladder`` as the organ of interest:
 ```{r}
 droplet.tiss.interest = "Bladder"
 facs.tiss.interest = "Bladder"
@@ -75,12 +77,14 @@ if(facs.tiss.interest %in% tiss.name.tm.facs){
   tm.facs.tiss <- tm.facs.matrix[,tm.facs.metadata$tissue==facs.tiss.interest]
 }
 
-
-
+```
+<!--
 #microwell.bladder <- microwell.matrix[,microwell.metadata$Tissue=="Bladder"]
 
 ```
+-->
 
+## Seurat build-in functions for cell classification
 
 We start our quest for automatic ways of classifying data using Seurat
 
@@ -96,14 +100,13 @@ Build the random forest classifier to be used with ClassifyCells
 Useful if you want to use the same classifier with several sets of new data
 
 ```{r}
-FACS_classes <- tissFACS@meta.data$cell_ontology_class
-classifierFACS <- BuildRFClassifier(tissFACS, training.classes = FACS_classes)
-
 
 tm.droplet.metadata.tiss <- tm.droplet.metadata[tm.droplet.metadata$tissue == droplet.tiss.interest,]
 tm.droplet.tiss.ann <- as.data.frame(tm.droplet.metadata.tiss, row.names = tm.droplet.metadata.tiss$cell)
 rownames(tm.droplet.tiss.ann) <- tm.droplet.tiss.ann[,1]
 tissDROPLET <- CreateSeuratObject(raw.data = tm.droplet.tiss, meta.data = tm.droplet.tiss.ann)
+
+tissDROPLET@meta.data$cell_ontology_class <- replace(tissDROPLET@meta.data$cell_ontology_class, is.na(tissDROPLET@meta.data$cell_ontology_class), "notKnown") 
 DROPLET_classes = as_factor(tissDROPLET@meta.data$cell_ontology_class)
 classifierDROPLET <- BuildRFClassifier(tissDROPLET, training.classes = tissDROPLET@meta.data$cell_ontology_class)
 
@@ -119,6 +122,7 @@ tissFACS <- CreateSeuratObject(raw.data = tm.facs.tiss, meta.data = tm.facs.tiss
 tissFACS@meta.data$cell_ontology_class <- replace(tissFACS@meta.data$cell_ontology_class, is.na(tissFACS@meta.data$cell_ontology_class), "notKnown") 
 FACS_classes = as_factor(tissFACS@meta.data$cell_ontology_class)
 classifierFACS <- BuildRFClassifier(tissFACS, training.classes = tissFACS@meta.data$cell_ontology_class)
+
 ```
 
 

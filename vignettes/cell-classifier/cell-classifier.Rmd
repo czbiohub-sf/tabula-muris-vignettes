@@ -34,13 +34,12 @@ library(SingleCellExperiment)
 library(scmap)
 ```
 
-As we briefly mentioned in the previous post, instead of manually and arbitrarily deciding which cell ontologies we should be comparing and computing the overlaps at the level of differentially expressed genes, we want to have a method to map on the fly new experimental data to existing reference datasets.
+As we briefly mentioned in the previous post, instead of manually and arbitrarily deciding which cell ontologies we should be comparing and computing the overlaps at the level of differentially expressed genes, we want to have a method to map on the fly new coming experimental data to existing reference datasets.
 
-Given the broad collection of organs in Tabula muris it is natural to think of it as a possible reference dataset. Here we will exemplify how we can build the reference classifier using the buil-in functions of ```Seurat``` and the recently published ```scmap``` method.
+Given the broad collection of organs in Tabula muris it is natural to think of it as a possible reference dataset. Here we will exemplify how we can build the reference classifier using the built-in functions of ```Seurat``` and the recently published ```scmap``` method.
 
-We can access Tabula muris data [here](https://github.com/czbiohub/tabula-muris-vignettes/tree/experiment-comparisons/data):
+We can get the Tabula muris data from [here](https://github.com/czbiohub/tabula-muris-vignettes/tree/experiment-comparisons/data):
 ```{r}
-
 tm.droplet.matrix = readRDS(here("data-tabula-muris", "TM_droplet_mat.rds"))
 tm.droplet.metadata = read_csv(here("data-tabula-muris", "TM_droplet_metadata.csv"))
 
@@ -59,10 +58,11 @@ For speed reasons we will be demonstrating the methods for a single tissue. We c
 ```{r}
 tiss.name.tm.droplet = unique(tm.droplet.metadata$tissue)
 tiss.name.tm.facs = unique(tm.facs.metadata$tissue)
-
+```
+<!--
 # tiss.name.microwellseq = unique(microwell.metadata$Tissue)
 ```
-
+-->
 
 Let us use ```Bladder`` as the organ of interest:
 ```{r}
@@ -84,51 +84,53 @@ if(facs.tiss.interest %in% tiss.name.tm.facs){
 ```
 -->
 
-## Seurat build-in functions for cell classification
+## Seurat built-in functions for cell classification
 
-We start our quest for automatic ways of classifying data using Seurat
-
-The libraries needed are
+We start by creating the Seurat objects for our data:
 ```{r}
-# load(file=here("00_data_ingest", "04_tissue_robj_generated", "facs_Bladder_seurat_tiss.Robj"))
-tissFACS <- tm.facs.tiss
-# load(file=here("00_data_ingest", "04_tissue_robj_generated", "droplet_Bladder_seurat_tiss.Robj"))
-tissDROPLET <- tm.droplet.tiss
-```
-
-Build the random forest classifier to be used with ClassifyCells
-Useful if you want to use the same classifier with several sets of new data
-
-```{r}
-
 tm.droplet.metadata.tiss <- tm.droplet.metadata[tm.droplet.metadata$tissue == droplet.tiss.interest,]
 tm.droplet.tiss.ann <- as.data.frame(tm.droplet.metadata.tiss, row.names = tm.droplet.metadata.tiss$cell)
 rownames(tm.droplet.tiss.ann) <- tm.droplet.tiss.ann[,1]
 tissDROPLET <- CreateSeuratObject(raw.data = tm.droplet.tiss, meta.data = tm.droplet.tiss.ann)
-
-tissDROPLET@meta.data$cell_ontology_class <- replace(tissDROPLET@meta.data$cell_ontology_class, is.na(tissDROPLET@meta.data$cell_ontology_class), "notKnown") 
-DROPLET_classes = as_factor(tissDROPLET@meta.data$cell_ontology_class)
-classifierDROPLET <- BuildRFClassifier(tissDROPLET, training.classes = tissDROPLET@meta.data$cell_ontology_class)
-
 ```
 
 ```{r}
-
 tm.facs.metadata.tiss <- tm.facs.metadata[tm.facs.metadata$tissue == facs.tiss.interest,]
 tm.facs.tiss.ann <- as.data.frame(tm.facs.metadata.tiss, row.names = tm.facs.metadata.tiss$cell)
 rownames(tm.facs.tiss.ann) <- tm.facs.tiss.ann[,1]
 tissFACS <- CreateSeuratObject(raw.data = tm.facs.tiss, meta.data = tm.facs.tiss.ann)
+```
 
-tissFACS@meta.data$cell_ontology_class <- replace(tissFACS@meta.data$cell_ontology_class, is.na(tissFACS@meta.data$cell_ontology_class), "notKnown") 
-FACS_classes = as_factor(tissFACS@meta.data$cell_ontology_class)
-classifierFACS <- BuildRFClassifier(tissFACS, training.classes = tissFACS@meta.data$cell_ontology_class)
+Next we use the ```BuildRFClassifier``` function to build a random forest classifier for each experimental method. This step can take a long time if the number of classes we want is big, but for the current example it should only take few minutes. Investing the time at this point is practical because we can later re-use the same classifier with several sets of data:
 
+<!--
+#tissDROPLET@meta.data$cell_ontology_class <- replace(tissDROPLET@meta.data$cell_ontology_class, is.na(tissDROPLET@meta.data$cell_ontology_class), "notKnown") 
+-->
+
+```{r}
+tm.droplet.tiss.train <- tm.droplet.tiss[,!is.na(tm.droplet.tiss.ann$cell_ontology_class)] 
+tm.droplet.tiss.train.metadata <- tm.droplet.tiss.ann[!is.na(tm.droplet.tiss.ann$cell_ontology_class),]
+
+train.tissDROPLET <- CreateSeuratObject(raw.data = tm.droplet.tiss.train, meta.data = tm.droplet.tiss.train.metadata)
+
+DROPLET_classes = as_factor(tissDROPLET@meta.data$cell_ontology_class)
+classifierDROPLET <- BuildRFClassifier(train.tissDROPLET, training.classes = train.tissDROPLET@meta.data$cell_ontology_class)
 ```
 
 
-Classify new data based on the cluster information of the provided object. Random Forests are used as the basis of the classification.
+```{r}
+tm.facs.tiss.train <- tm.facs.tiss[,!is.na(tm.facs.tiss.ann$cell_ontology_class)] 
+tm.facs.tiss.train.metadata <- tm.facs.tiss.ann[!is.na(tm.facs.tiss.ann$cell_ontology_class),]
 
-Verify FACS classifier
+train.tissFACS <- CreateSeuratObject(raw.data = tm.facs.tiss.train, meta.data = tm.facs.tiss.train.metadata)
+
+FACS_classes = as_factor(tissFACS@meta.data$cell_ontology_class)
+classifierFACS <- BuildRFClassifier(train.tissFACS, training.classes = train.tissFACS@meta.data$cell_ontology_class)
+```
+
+
+Once we have the classifiers we can use them to either classify data from the dataset we build them on or new data.
+We start by verifing our classifiers:
 ```{r}
 
 train.tissFACS <- SubsetData(object = tissFACS, cells.use = tissFACS@cell.names[seq(11,length(tissFACS@cell.names),100)])
@@ -144,7 +146,6 @@ predicted.classes.tissFACS <- ClassifyCells(
 confusionMatrix(data = predicted.classes.tissFACS, reference = FACS_classes)
 ```
 
-Verify DROPLET classifier
 ```{r}
 
 
@@ -162,10 +163,10 @@ confusionMatrix(data = predicted.classes.tissDROPLET, reference = DROPLET_classe
 
 ```
 
-Mix and match
-Classify DROPLET using FACS
-```{r}
+As expecte dthe accuracy here is 1 because we are classifying exactly the same data for which we built the object against to.
+More insteresting is to classify the data from, e.g. droplet method using the classifier built agains the FACS-based dataset:
 
+```{r}
 predicted.classes.tissDROPLET_usingFACS <- ClassifyCells(
   object = train.tissFACS,
   classifierFACS,
@@ -179,9 +180,10 @@ confusionMatrix(data = factor(predicted.classes.tissDROPLET_usingFACS, u), refer
 
 ```
 
-Classify FACS using DROPLET
-```{r}
+This example illustrates one likely common problem that we have to deal with. The FACS-based dataset has only tow levels, that is, only 2 cell ontologies were annotated, ```bladder cell``` and ```bladder urothelial cell``. However, the droplet-based dataset was annotated for 4 cell ontologies. In this situation, the random forest based classifier does not have the knowledge of possibly existing more labels and so tries to guess where best those cells would fit in out of the available possibilities.
+In reverse, using the droplet classifier on the FACS data enables us to question our annotations. This is the opposite situation, here the classifier has more boxes where it can fit cells in than the original number of boxes in the dataset.
 
+```{r}
 predicted.classes.tissFACS_usingDROPLET <- ClassifyCells(
   object = train.tissDROPLET,
   classifierDROPLET,
@@ -195,13 +197,14 @@ confusionMatrix(data = factor(predicted.classes.tissFACS_usingDROPLET, u), refer
 
 ```
 
-The union trick is necessary to account for the fact that sometimes the number of levels in the data and in the classifier don't match
+Interestingly enough some cells are classified into an ontology different from the reference one.
+Of note, the union trick is necessary to account for the fact that the number of levels in the data and in the classifier might not match.
 
-
-Because this classifycells *always* classifies a cell we want to change to something that give us greys...
+## scmap
+As we briefly mentioned above, using the random forest classifiers will *always* allocate a cell to one of the available levels but sometimes that might not be the answer we are looking for. It is well-known that cells existing in a continuum of states, and ideally we want to have a method that captures this by either classifying the cell in question as an established cell type or instead providing us the information that such cell cannot be classified and also the closest possible classifications.
 [scmap](https://www-nature-com.ucsf.idm.oclc.org/articles/nmeth.4644) can map individual cells from a query sample to cell types in the reference (scmap-cluster) or to individual cells in a reference (scmap-cell).
 
-## scmap input
+### scmap input
 If you already have a SingleCellExperiment object, skip this but if you have a matrix or a data frame containing expression data then you first need to create an `SingleCellExperiment` object containing your data. 
 
 <!--
@@ -250,8 +253,8 @@ Next we create the SingleCellExperiment objects.
 
 
 ```{r tm.droplet.sce}
-tm.droplet.metadata.tiss <- tm.droplet.metadata[tm.droplet.metadata$tissue == droplet.tiss.interest,]
-tm.droplet.tiss.ann <- as.data.frame(tm.droplet.metadata.tiss$cell_ontology_class, row.names = tm.droplet.metadata.tiss$cell)
+# tm.droplet.metadata.tiss <- tm.droplet.metadata[tm.droplet.metadata$tissue == droplet.tiss.interest,]
+# tm.droplet.tiss.ann <- as.data.frame(tm.droplet.metadata.tiss$cell_ontology_class, row.names = tm.droplet.metadata.tiss$cell)
 colnames(tm.droplet.tiss.ann) <- "cell_type1"
 
 sce.tm_droplet <- SingleCellExperiment(assays = list(normcounts = as.matrix(tm.droplet.tiss)), colData = tm.droplet.tiss.ann)
@@ -268,8 +271,8 @@ sce.tm_droplet
 
 
 ```{r tm.facs.sce}
-tm.facs.metadata.tiss <- tm.facs.metadata[tm.facs.metadata$tissue == facs.tiss.interest,]
-tm.facs.tiss.ann <- as.data.frame(tm.facs.metadata.tiss$cell_ontology_class, row.names = tm.facs.metadata.tiss$cell)
+# tm.facs.metadata.tiss <- tm.facs.metadata[tm.facs.metadata$tissue == facs.tiss.interest,]
+# tm.facs.tiss.ann <- as.data.frame(tm.facs.metadata.tiss$cell_ontology_class, row.names = tm.facs.metadata.tiss$cell)
 colnames(tm.facs.tiss.ann) <- "cell_type1"
 
 sce.tm_facs <- SingleCellExperiment(assays = list(normcounts = as.matrix(tm.facs.tiss)), colData = tm.facs.tiss.ann)
@@ -284,7 +287,7 @@ sce.tm_facs <- sce.tm_facs[!duplicated(rownames(sce.tm_facs)), ]
 sce.tm_facs
 ```
 
-## Feature selection
+### Feature selection
 
 Once we have a SingleCellExperiment object we can run scmap. Firstly, we need to select the most informative features (genes) from our input dataset:
 
@@ -298,28 +301,26 @@ sce.tm_facs <- selectFeatures(sce.tm_facs, suppress_plot = FALSE)
 table(rowData(sce.tm_facs)$scmap_features)
 ```
 
-
+We will use 500 features for each, as that is the default (the number can be changed using the ```n_features``` parameter).
 
 ## scmap-cluster
 ### Index
-The scmap-cluster index of a reference dataset is created by finding the median gene expression for each cluster. By default scmap uses the cell_type1 column of the colData slot in the reference to identify clusters. Other columns can be manually selected by adjusting  cluster_col parameter:
+The scmap-cluster index of a reference dataset is created by finding the median gene expression for each cluster. By default *scmap* uses the ```cell_type1``` column of the colData slot in the reference to identify clusters. Other columns can be manually selected by adjusting ```cluster_col``` parameter:
+
 ```{r t.droplet.indexCluster}
 sce.tm_droplet <- indexCluster(sce.tm_droplet)#,cluster_col = colnames(colData(sce.tm_droplet)))
-
 ```
-
 
 ```{r t.facs.indexCluster}
 sce.tm_facs <- indexCluster(sce.tm_facs)#,cluster_col = colnames(colData(sce.tm_facs)))
-
 ```
 
-The function indexCluster automatically writes the scmap_cluster_index item of the metadata slot of the reference dataset.
 
+The function indexCluster automatically writes the ```scmap_cluster_index``` item of the metadata slot of the reference dataset.
 
 ```{r tm.droplet.metadata}
 head(metadata(sce.tm_droplet)$scmap_cluster_index)
-heatmap(as.matrix(metadata(sce.tm_droplet)$scmap_cluster_index),)
+heatmap(as.matrix(metadata(sce.tm_droplet)$scmap_cluster_index))
 ```
 
 

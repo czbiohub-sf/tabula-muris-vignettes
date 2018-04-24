@@ -1,8 +1,6 @@
 ---
 title: "R Notebook"
-output: 
-  html_notebook
-  html_document
+output: html_notebook
 ---
 
 In this post, we will analyze the differential expression of B cells in different compartments of the body. As this is 19,243 cells in the droplet data and 12,622 cells in the FACS data, I'll show here only the excerpts of the code, while linking the reader to the full analyses on GitHub. For this blog post, we'll focus on the FACS data as that had the largest diversity of tissues (20 total, compared to 11 for Droplet).
@@ -14,6 +12,9 @@ As there may have been some misclassifications of cell annotations, we will firs
 First, we load the [`ontologyIndex`](https://www.rdocumentation.org/packages/ontologyIndex/versions/2.4) package for reading ontologies, and grab the latest version of the Cell Ontology from GitHub. Then, we use `get_descendants` to obtain all children terms of "leukocyte," which includes "leukocyte" itself.
 
 ```{r}
+library(Seurat)
+library(tidyverse)
+library(here)
 library(ontologyIndex)
 
 cell_ontology = get_ontology('https://raw.githubusercontent.com/obophenotype/cell-ontology/master/cl-basic.obo',
@@ -35,10 +36,14 @@ head(cell_ontology$name[leukocyte_or_descendant])
 Now that we have the Cell Ontology IDs that we want, it is very easy to grab the cells annotated as such:
 
 ```{r}
+method = 'facs'
+metadata = read.csv(here("data", paste0("TM_", method, "_metadata.csv")), 
+                    row.names = 1, stringsAsFactors = FALSE, header=TRUE, sep=",")
+
 immune_ind = metadata$cell_ontology_id %in% leukocyte_or_descendant
 ```
 
-To see the full code, please see the [`00_extract_immune_from_global`](https://github.com/czbiohub/tabula-muris-vignettes/blob/bcells/vignettes/bcells/00_extract_immune_from_global.nb.html) R Markdown file.
+To see the full code, please see the [`00_extract_immune_from_global.Rmd`](https://github.com/czbiohub/tabula-muris-vignettes/blob/bcells/vignettes/bcells/00_extract_immune_from_global.nb.html) R Markdown file.
 
 ## Filter to Cd19 B cells
 
@@ -52,7 +57,7 @@ TSNEPlot(tiss_facs_immune, group.by = 'tissue')
 TSNEPlot(tiss_facs_immune, group.by = 'cell_ontology_class')
 TSNEPlot(tiss_facs_immune, group.by = 'mouse.sex')
 TSNEPlot(tiss_facs_immune, group.by = 'mouse.id')
-TSNEPlot(tiss_facs_immune, group.by = 'channel')
+TSNEPlot(tiss_facs_immune, group.by = 'plate.barcode')
 ```
 
 
@@ -94,7 +99,7 @@ So it looks like cluster 0 is the maturing B cells in the spleen (it's like scho
 We want to make sure that we have "enough" cells per tissue to get a valid comparison, e.g. if there's 1 cell from a tissue, we don't think that's enough information. So let's take a look at how many cells we have per tissue:
 
 ```{r}
-table(tiss_droplet_cd19@meta.data$tissue)
+table(tiss_facs_cd19@meta.data$tissue)
 ```
 
 We'll set the threshold at a minimum of 30 cells per tissue so we can take a look at Liver. The number of cells in `Limb_Muscle`,`Liver` and `Lung` are 1-2 orders of magnitude smaller than the values in Marrow and Spleen so those *p*-values won't be as significant.
@@ -183,6 +188,16 @@ write_csv(organ_markers, here('vignettes', 'bcells', 'facs_tissue_markers.csv'))
 head(organ_markers)
 ```
 
+Add tissue name back to cluster
+
+```{r}
+organ_markers[,'tissue'] = as.factor(plyr::mapvalues(x = organ_markers[,'cluster'], 
+                                                     from = enumerated_annotations, 
+                                                     to = unique_annotations))
+head(organ_markers)
+```
+
+
 Let's take a look at the p values, to see which tissues have the most differential expression:
 
 ```{r}
@@ -270,6 +285,11 @@ In a [recent paper](https://www.ncbi.nlm.nih.gov/pubmed/29221731) the reseracher
 Set "tissue_subtissue_fat" as the "ident" for further analysis.
 
 ```{r}
+subtissue_if_fat = ifelse(tiss_facs_tissues_enough_cells@meta.data$tissue == "Fat",
+                          paste(":", tiss_facs_tissues_enough_cells@meta.data$subtissue), "")
+tiss_facs_tissues_enough_cells@meta.data[, 'tissue_subtissue_fat'] = 
+  paste0(tiss_facs_tissues_enough_cells@meta.data$tissue, subtissue_if_fat)
+
 annotation = 'tissue_subtissue_fat'
 
 annotations = tiss_facs_tissues_enough_cells@meta.data[,annotation]

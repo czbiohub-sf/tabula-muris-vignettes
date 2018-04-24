@@ -1,16 +1,33 @@
 # tabula-muris-vignettes
-Examples of analyzing the single-cell RNA-seq data from Tabula Muris (https://github.com/czbiohub/tabula-muris) that didn't fit in the paper
 
+## What's this?
 
+This is a collection of analysis vignettes showcasing the possibilities and challenges provided by recent organism-wide murine single-cell sequencing projects.
 
-# Tabula muris - the importance of sharing comprehensive datasets to connect the dots
+There are three datasets, two from CZ Biohub's [Tabula Muris](http://tabula-muris.ds.czbiohub.org/) and one from the Guo lab's [Mouse Cell Atlas](http://bis.zju.edu.cn/MCA/). They each cover 12-20 different organs, and together provide different technical profiles in terms of cell sorting, lysis, barcoding, and library preparation.
 
-> Frictionless data sharing is what motivates us (Olga Botvinnik (@olgabot), CZ Biohub data scientist)
+We believe that these datasets provide sufficient breadth and diversity to serve
+as model systems for:
 
-The Tabula Muris is a compendium of single cell transcriptome data from the model organism Mus musculus comprising more than 100,000 cells from 20 organs and tissues.  These data represent a new resource for cell biology, revealing gene expression in poorly characterized cell populations and allowing for direct and controlled comparison of gene expression in cell types shared between tissues, such as T-lymphocytes and endothelial cells from distinct anatomical locations.
+* cell type annotation and reannotation at various levels of ontological depth
+* building and validating cell type classifiers
+* manifold alignment and batch-effect-aware analyses
+* assessing the variability in gene expression of cell types present in many organs, like immune cells, endothelial cells, and epithelial cells.
+* measuring sex differences in gene expression
+* measuring the variability in biological claims (like which genes are differentially expressed between populations) to be expected between different studies
 
-This Mouse Atlas has many uses, including the discovery of new putative cell types, the discovery of novel gene expression in known cell types, and the ability to compare cell types across organs and tissues.  It will also serve as a reference of healthy young adult organs and tissues which can be used as a baseline for current and future mouse models of disease. While it is not an exhaustive characterization of all organs of the mouse, it does provide a rich data set of many of the most populous and important cell populations within the mouse, and represents a foundation for future studies across a multitude of diverse physiological disciplines. 
+## How to use
 
-As such a resource is only useful if it can be fully used by the community, we released the data (figshare?) and the code (GitHub,+?)
+Instructions on how to download the datasets are in the `data` directory in the repo. Given those instructions (and sufficient installed dependencies), all notebooks in  `vignettes` should run.
 
+## How to contribute
 
+Contributed posts are welcome! We are working out the details of publication (likely through a blog driven by this repo), but the basic workflow to make a post is:
+
+1. Make a new branch
+2. Put all notebooks and generated html in the `vignettes`  folder
+3. Submit a PR for review
+
+## Vignettes
+
+* [The Hazards of Regression](http://htmlpreview.github.io/?https://github.com/czbiohub/tabula-muris-vignettes/blob/master/vignettes/regression/Regression_Hazards.nb.html): What happens when you try to remove technical confounders that are correlated with cell type?

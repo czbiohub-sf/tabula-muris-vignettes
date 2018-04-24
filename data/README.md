@@ -34,6 +34,6 @@ Some vignettes assume that you have downloaded the raw data from [FigShare](http
 The original data for the MCA is available on [FigShare](https://figshare.com/articles/MCA_DGE_Data/5435866). The [Satija lab](http://satijalab.org/seurat/mca.html) has also repackaged the data for convenient use (in R) in this [zip](https://www.dropbox.com/s/8d8t4od38oojs6i/MCA.zip?dl=1). It can be loaded as
 
 ```R
-mca.matrix = readRDS(here("data", "MCA_merged_mat.rds.rds"))
+mca.matrix = readRDS(here("data", "MCA_merged_mat.rds"))
 mca.metadata = read_csv(here("data", "MCA_All-batch-removed-assignments.csv"))
 ```

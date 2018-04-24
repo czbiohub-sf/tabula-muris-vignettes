@@ -82,7 +82,7 @@ DotPlot(tiss_facs_immune, genes_to_check)
 ```
 Save the clustered immune cells for later.
 ```{r}
-save(tiss_facs_immune, file=here('vignettes', 'bcells', 'droplet_immune_clustered.Robj'))
+save(tiss_facs_immune, file=here('vignettes', 'bcells', 'facs_immune_clustered.Robj'))
 ```
 
 

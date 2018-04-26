@@ -1,13 +1,16 @@
 # Integration of multiple scRNA-seq datasets from different labs
 With the accumulation of single cell RNA (scRNA-seq) studies comes the burning question: how can we compare datasets generated in completely distinct ways?
 
-This question is fundamental because we want to be able to integrate datasets produced by different labs that report on similar biological specimens. In creating [Tabula muris](https://github.com/czbiohub/tabula-muris-vignettes/blob/master/README.md) we used two different technical approaches:
+This question is fundamental because we want to be able to integrate datasets produced by different labs that report on similar biological specimens. As we used two different technical approaches in [Tabula muris](https://github.com/czbiohub/tabula-muris-vignettes/blob/master/README.md), our dataset therefore offers the ideal platform for techincal comparisons of sequencing results derived from identically isolated biological samples but processed with two distinct methods for scRNA-seq
+<!--
 <ol>
   <li><span style="font-weight: bold;">microfluidic droplet-based 3’-end counting</span> that enabled the survey of thousands of cells at relatively low coverage;</li>
   <li><span style="font-weight: bold;">FACS-based full length transcript analysis</span> that enabled characterization of cell types with high sensitivity and coverage.</li>
 </ol>
+--->
 
-Our dataset therefore offers the ideal platform for techincal comparisons of sequencing results derived from identically isolated biological samples but processed with two distinct methods for scRNA-seq [technical comparisons](linktothepaperfigures).
+<!-- Our dataset therefore offers the ideal platform for techincal comparisons of sequencing results derived from identically isolated biological samples but processed with two distinct methods for scRNA-seq [technical comparisons](linktothepaperfigures).
+-->
 
 <!--We illustrate the variability to be expected between methods and experiments by comparing our two measurement approaches to one another, and to data from Han et al (Cell 2018) generated using a third method, microwell-seq. One striking feature is the variability in the number of genes detected per cell between organs and tissues and between methods. -->
 
@@ -23,13 +26,17 @@ Our dataset therefore offers the ideal platform for techincal comparisons of seq
 
 <!--We found that the number of detected genes decreases monotonically with increasing thresholds at similar rates across different organs and tissues within each method. We observed that in the droplet data more than half of the detected genes are represented by only a single UMI; this is to be expected given that only a few thousand UMIs are captured per cell. The FACS data are sampled much more deeply and one needs to set a relatively high threshold of 40 reads to see a comparable reduction in gene detection sensitivity.-->
 
-In parallel with our mouse cell atlas, [Han et al](http://www.cell.com/cell/abstract/S0092-8674(18)30116-8) developed a new method, microwell-seq, and also derived another mouse cell atlas. It is pertinent to compare these two works because together they offer a more complete picture of mouse biology at single cell resolution. We decided to compare the data at the level of differentially expressed genes. To do so, we computed [lists of genes](https://github.com/czbiohub/tabula-muris/blob/master/22_markers/FindMarkers.Rmd) that differentiate each cell type from the rest of the cells for a given organ across all three methods, focusing on common organs and cell types for the three methods. The following code snippets are from the Matlab scripts available [here](https://github.com/czbiohub/tabula-muris/blob/master/22_markers/methods_comparison.m) and for simplicity  we also provide the [gene signature files](https://github.com/czbiohub/tabula-muris/tree/master/22_markers) for each organ. There are 8 tissues for which we have data from the three methods:
+In parallel, [Han et al](http://www.cell.com/cell/abstract/S0092-8674(18)30116-8) developed a new method, microwell-seq, and also derived another mouse cell atlas. It is pertinent to compare these two works because together they offer a more complete picture of mouse biology at single cell resolution.
+Traditionally we compare the data at the level of differentially expressed genes, to avoid entering the realm of batch effects introduced by different technologies. To do so, we computed [lists of genes](https://github.com/czbiohub/tabula-muris/blob/master/22_markers/FindMarkers.Rmd) that differentiate each cell type from the rest of the cells for a given organ across all three methods, focusing on common organs and cell types for the three methods. The following code snippets are from the Matlab scripts available [here](https://github.com/czbiohub/tabula-muris/blob/master/22_markers/methods_comparison.m) and for simplicity  we also provide the [gene signature files](https://github.com/czbiohub/tabula-muris/tree/master/22_markers) for each organ. There are 8 tissues for which we have data from the three methods, so we can get the signatures for the tissue specific cell ontologies for all methods:
 
 ```Matlab
 tissuesAvailable = {'Bladder', 'Kidney', 'Liver', 'Lung','Marrow', 'Limb_Muscle', 'Spleen', 'Thymus'}';
+```
+<!--
 [s,v] = listdlg('PromptString','Select a tissue:',...
     'SelectionMode','single',...
     'ListString',tissuesAvailable);
+
 
 tissuename = tissuesAvailable{s};filename1 = sprintf('facs_%s_cell_ontology_class_markers.csv',tissuename);
 tissueFACS = readtable(filename1);
@@ -50,9 +57,10 @@ tissueMicrowellSeq = readtable(filename3);
 ```
 
 Next we get the cell signatures for all methods
+-->
 
+We start by getting the tissue specific cell ontologies signatures for Tabula muris FACS:
 ```Matlab
-%% get tissue cell signatures for Tabula muris FACS
 cellNamesTMfacs = unique(table2cell(tissueFACSnames(:,2)));
 cellNamesTMfacs = sortrows(cellNamesTMfacs);
 for i = 1:length(cellNamesTMfacs)
@@ -75,9 +83,10 @@ for i = 1:size(cellClustersTMfacs,1)
 	tissueTMfacsCellSigs(1:length(tissueTMfacsCellSigsAUX)+1,i) = [cellNamesTMfacs(i);tissueTMfacsCellSigsAUX];
 	tissueTMfacsCellSigsFC(1:length(tissueTMfacsCellSigsAUX)+1,i) = [-cellClustersTMfacs(i,j);tissueTMfacsCellSigsFCaux(ia)];
 end
+```
 
-
-%% get tissue cell signatures for Tabula muris 10x
+Then for Tabula muris droplet:
+```Matlab
 cellNamesTM10x = unique(table2cell(tissue10xnames(:,2)));
 cellNamesTM10x = sortrows(cellNamesTM10x);
 for i = 1:length(cellNamesTM10x)
@@ -100,10 +109,10 @@ for i = 1:size(cellClustersTM10x,1)
 	tissueTM10xCellSigs(1:length(tissueTM10xCellSigsAUX)+1,i) = [cellNamesTM10x(i);tissueTM10xCellSigsAUX];
 	tissueTM10xCellSigsFC(1:length(tissueTM10xCellSigsAUX)+1,i) = [-cellClustersTM10x(i,j);tissueTM10xCellSigsFCaux(ia)];
 end
+```
 
-
-%% get tissue cells signatures for microwell-seq
-
+And finally for microwell-seq:
+```Matlab
 microwellSeq = table2cell(tissueMicrowellSeq);
 microwellSeqcelltypes = {};
 aux = 1;
@@ -130,8 +139,12 @@ microwellSeqcellSigsFC(1:(i-baux+1),end+1) = [-cell2mat(microwellSeq(baux,5));ce
 [microwellSeqcelltypesSorted,index] = sortrows(microwellSeqcelltypes);
 microwellSeqCellSigs = microwellSeqCellSigs(:,index);
 microwellSeqcellSigsFC = microwellSeqcellSigsFC(:,index);
+```
 
-And the we search for the overlapping tissue cell types signatures. This includes a manually matching step, the definition of the overlapping matrix.
+Once this is set we search for the genes that overlap across the three methods and plot it as Venn diagrams.
+
+<!--
+Before we are able to do so, we have to manually match the cell ontologies, defining  compare the technologies.
 
 if strcmp(tissuename,'Bladder')
 	tissueOverlaps = cell(1,6);
@@ -184,15 +197,18 @@ if strcmp(tissuename , 'Thymus')
 end
 
 ```
+-->
 
-The ```overlapMatrix``` has the following structure:
+<!--
+This data struct has the following structure:
 <ul>
   <li>1st column: cell types for the organ being compared as defined in the cell ontology associated with the FACS dataset</li>
   <li>2nd column: corresponding cell types as defined in the cell ontology associated with the 10x dataset</li>
   <li>3rd:end columns: corresponding cell types as defined in the cell ontology associated with the microwellSeq dataset</li>
-</ul>
+</ul
 
-Lastly we computed the overlaps and drew the Venn diagrams
+Lastly we computed the overlaps and drew the Venn diagrams>
+-->
 
 ```Matlab
 % find the overlaps
@@ -320,13 +336,15 @@ writetable(overlapMatrixNames,sprintf('%s_cell_ontologies.csv',tissuename))
 
 ```
 
-You can view the graphical output 
-![here](methods_comparison_diffExp.pdf)
+The graphical output is [here](https://github.com/czbiohub/tabula-muris-vignettes/blob/experiment-comparisons/vignettes/methods_comparison/methods_comparison_diffExp_blog.png).
 
-<embed src="https://github.com/czbiohub/tabula-muris-vignettes/blob/master/vignettes/methods_comparison/methods_comparison_diffExp.pdf" width="500" height="375" type='application/pdf'>
+For this example we manually set the ```overlapMatrix```, that is, we forced the algorithm to compare cell ontologies that we matched by ontology name. The problem with doing so is that we are assuming that the annotations are consistent across all experiments but this might not necessarily be the case. Let's take the current example - while in Tabula muris we used [OBO Cell Ontology]( http://obofoundry.org/ontology/cl.html) structured and controlled vocabulary for cell types in animals, Han et al in the microwell seq paper took a dramaitcally different approach and have cell types named as ```Neutrophil_Npg_high``` and ```Neutrophil_Retngg_high```, for example.
 
-This simple method illustrates one way of comparing datasets that have been independently obtained without the need to re-analize the raw data. We have, however, assumed that the annotations and the analysis are consistent across the datasets. For this case in particular, the assumption is valid (within certain limits) because all three datasets compared where analyzed using [Seurat](http://satijalab.org/seurat/) R package and the overlap among cell types was inferred using the gene symbol.
 
-Next we will be looking at using machine learning techniques to derive a better, scalable comparisons pipeline.
+<embed src="https://github.com/czbiohub/tabula-muris-vignettes/blob/experiment-comparisons/vignettes/methods_comparison/methods_comparison_diffExp_blog.png" width="500" height="375">
+
+In this example we have illustrated one way of comparing datasets that have been independently obtained without the need to re-analize the raw data, instead we take the fully analysed datasets and mix&match across experiments. As a challenge why don't you try to compare all cells from the same cell ontology across all organs, as for example ```macrophages```?
+
+In the next post we will be looking at using machine learning techniques to derive a (probably) better, more scalable comparisons pipeline.
 
 &#35;tabula-muris &#35;sc-RNA-seq &#35;methods-comparison &#35;FACS &#35;10x-genomics &#35;droplets-based-methods &#35;microwell-seq

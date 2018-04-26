@@ -1,0 +1,61 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code.
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*.
+
+```{r}
+library(Seurat)
+library(here)
+library(tidyverse)
+library(ontologyIndex)
+library(tidyverse)
+
+cell_ontology = get_ontology('https://raw.githubusercontent.com/obophenotype/cell-ontology/master/cl-basic.obo',
+                             extract_tags='everything')
+
+source(here('vignettes', 'bcells', 'common.R'))
+
+# From: http://www.ontobee.org/ontology/CL?iri=http://purl.obolibrary.org/obo/CL_0000738
+# Lymphocytes are a descendant (child) of leukocytes: http://www.ontobee.org/ontology/CL?iri=http://purl.obolibrary.org/obo/CL_0000542
+leukocyte_id = "CL:0000738"
+leukocyte_or_descendant = get_descendants(cell_ontology, roots=leukocyte_id)
+```
+
+```{r}
+methods = c('facs', 'droplet')
+
+for (method in methods){
+  matrix = readRDS(here("data", paste0("TM_", method, "_mat.rds")))
+  metadata = read.csv(here("data", paste0("TM_", method, "_metadata.csv")), 
+                      row.names = 1, stringsAsFactors = FALSE, header=TRUE, sep=",")
+  # metadata = column_to_rownames(metadata, "cell")
+
+  # load(robj)
+
+  immune_ind = metadata$cell_ontology_id %in% leukocyte_or_descendant
+  immune_ontologies = sort(unique(metadata$cell_ontology_class[immune_ind]))
+  print(immune_ontologies)
+  print(paste(method, "-- Number of immune cells:", sum(immune_ind)))
+
+  immune_matrix = matrix[,immune_ind]
+  immune_metadata = metadata[immune_ind,]
+
+  tiss_immune = create_seurat_object(immune_matrix, immune_metadata, method)
+
+  filename = here('vignettes', 'bcells', paste0(method, '_immune.Robj'))
+  print(filename)
+  if (method == 'droplet'){
+    tiss_droplet_immune = tiss_immune
+    save(tiss_droplet_immune, file=filename)
+  } else {
+    tiss_facs_immune = tiss_immune
+    save(tiss_facs_immune, file=filename)
+  }
+}
+```
+
+

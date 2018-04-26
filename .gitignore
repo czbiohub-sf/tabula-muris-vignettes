@@ -1,3 +1,8 @@
+# No Robjs or Rds files
+*.Robj
+*.rds
+*.Rds
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

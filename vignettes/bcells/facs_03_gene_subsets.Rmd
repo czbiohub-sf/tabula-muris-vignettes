@@ -1,0 +1,57 @@
+---
+title: "B Cells FACS"
+output: html_notebook
+---
+```{r}
+library(Seurat)
+library(tidyverse)
+library(here)
+source(here('vignettes', 'bcells', 'common.R'))
+
+load(here('vignettes', 'bcells', 'facs_cd19.Robj'))
+
+tiss_facs_cd19@meta.data[,'pca.cluster.ids'] = as.numeric(tiss_facs_cd19@ident)
+```
+
+
+## Do ICA
+
+```{r, fig.height=4, fig.width=8, echo=FALSE}
+tiss_facs_cd19 <- RunICA(object = tiss_facs_cd19)
+tiss_facs_cd19 <- ProjectDim(object = tiss_facs_cd19, reduction.type = 'ica')
+# ICHeatmap(object = tiss_facs_cd19, ic.use = 1:6, cells.use = 500, do.balanced = TRUE, label.columns = FALSE, num.genes = 8)
+```
+
+
+
+Find clusters using ICA
+
+```{r}
+DimElbowPlot(tiss_facs_cd19, reduction.type="ica")
+```
+
+
+
+```{r}
+ICAPlot(tiss_facs_cd19)
+```
+
+
+```{r}
+# Set resolution
+sub.res.used <- .1
+
+tiss_facs_cd19 <- FindClusters(object = tiss_facs_cd19, reduction.type = "ica",
+    resolution = sub.res.used, print.output = 0, save.SNN = TRUE)
+```
+
+```{r}
+tiss_facs_cd19 <- RunTSNE(object = tiss_facs_cd19, seed.use = 10, perplexity=30, reduction.use="ica")
+TSNEPlot(tiss_facs_cd19)
+```
+
+```{r}
+table(tiss_droplet_cd19@ident, tiss_droplet_cd19@meta.data$pca)
+```
+
+

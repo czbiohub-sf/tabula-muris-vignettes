@@ -253,8 +253,8 @@ Next we create the SingleCellExperiment objects.
 
 
 ```{r tm.droplet.sce}
-# tm.droplet.metadata.tiss <- tm.droplet.metadata[tm.droplet.metadata$tissue == droplet.tiss.interest,]
-# tm.droplet.tiss.ann <- as.data.frame(tm.droplet.metadata.tiss$cell_ontology_class, row.names = tm.droplet.metadata.tiss$cell)
+tm.droplet.metadata.tiss <- tm.droplet.metadata[tm.droplet.metadata$tissue == droplet.tiss.interest,]
+tm.droplet.tiss.ann <- as.data.frame(tm.droplet.metadata.tiss$free_annotation, row.names = tm.droplet.metadata.tiss$cell)
 colnames(tm.droplet.tiss.ann) <- "cell_type1"
 
 sce.tm_droplet <- SingleCellExperiment(assays = list(normcounts = as.matrix(tm.droplet.tiss)), colData = tm.droplet.tiss.ann)
@@ -271,8 +271,8 @@ sce.tm_droplet
 
 
 ```{r tm.facs.sce}
-# tm.facs.metadata.tiss <- tm.facs.metadata[tm.facs.metadata$tissue == facs.tiss.interest,]
-# tm.facs.tiss.ann <- as.data.frame(tm.facs.metadata.tiss$cell_ontology_class, row.names = tm.facs.metadata.tiss$cell)
+tm.facs.metadata.tiss <- tm.facs.metadata[tm.facs.metadata$tissue == facs.tiss.interest,]
+tm.facs.tiss.ann <- as.data.frame(tm.facs.metadata.tiss$free_annotation, row.names = tm.facs.metadata.tiss$cell)
 colnames(tm.facs.tiss.ann) <- "cell_type1"
 
 sce.tm_facs <- SingleCellExperiment(assays = list(normcounts = as.matrix(tm.facs.tiss)), colData = tm.facs.tiss.ann)
@@ -287,6 +287,45 @@ sce.tm_facs <- sce.tm_facs[!duplicated(rownames(sce.tm_facs)), ]
 sce.tm_facs
 ```
 
+```{r microwell.sce}
+microwell.matrix = readRDS(here("data-microwell-seq", "MCA_merged_mat.rds"))
+microwell.metadata = read_csv(here("data-microwell-seq", "MCA_All-batch-removed-assignments.csv"))
+
+microwell.matrix <- microwell.matrix[,colnames(microwell.matrix) %in% microwell.metadata$`Cell name`]
+microwell.metadata <- microwell.metadata[microwell.metadata$`Cell name` %in% colnames(microwell.matrix),]
+
+microwell.matrix.tiss <- microwell.matrix[,microwell.metadata$Tissue=="Bladder"]
+microwell.metadata.tiss <- microwell.metadata[microwell.metadata$Tissue=="Bladder",]
+
+clusternames <- c("Stromal cell_Dpt high","Mesenchymal stromal cell","Basal epithelial cell",
+                  "Urothelium","Stromal cell_Car3 high","Epithelial cell_Upk3a high",
+                  "Smooth muscle cell",
+                  "Vascular endothelial cell",
+                  "Umbrella cell","Epithelial cell_Gm23935 high","Macrophage_Pf4 high","Dendritic cell_Cd74 high","Dendritic cell_Lyz2 high","Endothelial cell_Ly6c1 high","NK cell","Vascular smooth muscle progenitor cell")
+
+clusterids <- c("Bladder_1","Bladder_2","Bladder_3","Bladder_4","Bladder_5",
+                "Bladder_6","Bladder_7","Bladder_8","Bladder_9","Bladder_10",
+                "Bladder_11","Bladder_12","Bladder_13","Bladder_14","Bladder_15","Bladder_16")
+
+microwell.metadata.tiss$cluster_name <- clusternames[match(microwell.metadata.tiss$ClusterID,clusterids)]
+
+microwell.metadata.tiss <- microwell.metadata.tiss[match(colnames(microwell.matrix.tiss), microwell.metadata.tiss$`Cell name`),]
+
+microwell.metadata.tiss.ann <- as.data.frame(microwell.metadata.tiss$cluster_name,row.names = microwell.metadata.tiss$`Cell name`)
+colnames(microwell.metadata.tiss.ann) <- "cell_type1"
+
+sce.microwell <- SingleCellExperiment(assays = list(normcounts = as.matrix(microwell.matrix.tiss)), colData = microwell.metadata.tiss.ann)
+counts(sce.microwell) <- normcounts(sce.microwell)
+logcounts(sce.microwell) <- log2(normcounts(sce.microwell) + 1)
+# use gene names as feature symbols
+rowData(sce.microwell)$feature_symbol <- rownames(sce.microwell)
+isSpike(sce.microwell, "ERCC") <- grepl("^ERCC-", rownames(sce.microwell))
+# remove features with duplicated names - not need here
+sce.microwell <- sce.microwell[!duplicated(rownames(sce.microwell)), ]
+
+sce.microwell
+```
+
 ### Feature selection
 
 Once we have a SingleCellExperiment object we can run scmap. Firstly, we need to select the most informative features (genes) from our input dataset:
@@ -297,24 +336,33 @@ table(rowData(sce.tm_droplet)$scmap_features)
 ```
 
 ```{r tm.facs}
-sce.tm_facs <- selectFeatures(sce.tm_facs, suppress_plot = FALSE)
+sce.tm_facs <- selectFeatures(sce.tm_facs, suppress_plot = FALSE,n_features = 500)
 table(rowData(sce.tm_facs)$scmap_features)
 ```
+
+```{r microwell}
+sce.microwell <- selectFeatures(sce.microwell, suppress_plot = FALSE,n_features = 500)
+table(rowData(sce.microwell)$scmap_features)
+```
+
 
 We will use 500 features for each, as that is the default (the number can be changed using the ```n_features``` parameter).
 
 ## scmap-cluster
 ### Index
-The scmap-cluster index of a reference dataset is created by finding the median gene expression for each cluster. By default *scmap* uses the ```cell_type1``` column of the colData slot in the reference to identify clusters. Other columns can be manually selected by adjusting ```cluster_col``` parameter:
+The scmap-cluster index of a reference dataset is created by finding the median gene expression for each cluster. By default **scmap** uses the ```cell_type1``` column of the colData slot in the reference to identify clusters. Other columns can be manually selected by adjusting ```cluster_col``` parameter:
 
-```{r t.droplet.indexCluster}
+```{r tm.droplet.indexCluster}
 sce.tm_droplet <- indexCluster(sce.tm_droplet)#,cluster_col = colnames(colData(sce.tm_droplet)))
 ```
 
-```{r t.facs.indexCluster}
+```{r tm.facs.indexCluster}
 sce.tm_facs <- indexCluster(sce.tm_facs)#,cluster_col = colnames(colData(sce.tm_facs)))
 ```
 
+```{r microwell.indexCluster}
+sce.microwell <- indexCluster(sce.microwell)#,cluster_col = colnames(colData(sce.tm_facs)))
+```
 
 The function indexCluster automatically writes the ```scmap_cluster_index``` item of the metadata slot of the reference dataset.
 
@@ -329,6 +377,10 @@ head(metadata(sce.tm_facs)$scmap_cluster_index)
 heatmap(as.matrix(metadata(sce.tm_facs)$scmap_cluster_index))
 ```
 
+```{r microwell.metadata}
+head(metadata(sce.microwell)$scmap_cluster_index)
+heatmap(as.matrix(metadata(sce.microwell)$scmap_cluster_index))
+```
 
 
 ### Projection
@@ -339,7 +391,8 @@ scmapCluster_results.tm_droplet <- scmapCluster(
   projection = sce.tm_droplet, 
   index_list = list(
     tm_droplet = metadata(sce.tm_droplet)$scmap_cluster_index
-  )
+  ),
+  threshold = .5
 )
 
 # scmap-cluster projects the query dataset to all projections defined in the index_list. The results of cell label assignements are merged into one matrix:
@@ -357,7 +410,9 @@ plot(
     colData(sce.tm_droplet)$cell_type1, 
     scmapCluster_results.tm_droplet$scmap_cluster_labs[,'tm_droplet'],
     plot_height = 400,
-    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363')
+    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363','#000080','#CD853F','#8B0000','#FF6347',
+               '#000000','#CD1076','#BFEFFF','#698B22','#CD6889','#FFFF00','#CDBA96','#D02090','#CD4F39',
+               '#EEDD82','#BFEFFF','#D2691E','#008B8B')
   )
 )
 ```
@@ -367,6 +422,35 @@ scmapCluster_results.tm_facs <- scmapCluster(
   projection = sce.tm_facs, 
   index_list = list(
     tm_facs = metadata(sce.tm_facs)$scmap_cluster_index
+  ),
+  threshold = .25
+)
+
+# scmap-cluster projects the query dataset to all projections defined in the index_list. The results of cell label assignements are merged into one matrix:
+head(scmapCluster_results.tm_facs$scmap_cluster_labs)
+
+# Corresponding similarities are stored in the scmap_cluster_siml item:
+head(scmapCluster_results.tm_facs$scmap_cluster_siml)
+
+# scmap also provides combined results of all reference dataset (choose labels corresponding to the largest similarity across reference datasets):
+head(scmapCluster_results.tm_facs$combined_labs)
+
+# Visualisation
+plot(
+  getSankey(
+    colData(sce.tm_facs)$cell_type1, 
+    scmapCluster_results.tm_facs$scmap_cluster_labs[,'tm_facs'],
+    plot_height = 400,
+    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363','#000080', '#CD853F','#8B0000','#FF6347','#000000')
+  )
+)
+```
+
+```{r tm.facs-droplet.projection}
+scmapCluster_results.tm_facs <- scmapCluster(
+  projection = sce.tm_facs, 
+  index_list = list(
+    tm_facs = metadata(sce.tm_droplet)$scmap_cluster_index
   )
 )
 
@@ -385,7 +469,190 @@ plot(
     colData(sce.tm_facs)$cell_type1, 
     scmapCluster_results.tm_facs$scmap_cluster_labs[,'tm_facs'],
     plot_height = 400,
-    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363')
+    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363','#000080', '#CD853F','#8B0000','#FF6347','#000000')
+  )
+)
+```
+
+```{r tm.droplet-facs.projection}
+scmapCluster_results.tm_droplet <- scmapCluster(
+  projection = sce.tm_droplet, 
+  index_list = list(
+    tm_droplet = metadata(sce.tm_facs)$scmap_cluster_index
+  )
+)
+
+# scmap-cluster projects the query dataset to all projections defined in the index_list. The results of cell label assignements are merged into one matrix:
+head(scmapCluster_results.tm_facs$scmap_cluster_labs)
+
+# Corresponding similarities are stored in the scmap_cluster_siml item:
+head(scmapCluster_results.tm_facs$scmap_cluster_siml)
+
+# scmap also provides combined results of all reference dataset (choose labels corresponding to the largest similarity across reference datasets):
+head(scmapCluster_results.tm_facs$combined_labs)
+
+# Visualisation
+plot(
+  getSankey(
+    colData(sce.tm_droplet)$cell_type1, 
+    scmapCluster_results.tm_droplet$scmap_cluster_labs[,'tm_droplet'],
+    plot_height = 400,
+    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363','#000080', '#CD853F','#8B0000','#FF6347','#000000')
+  )
+)
+```
+
+```{r microwell.projection}
+scmapCluster_results.microwell <- scmapCluster(
+  projection = sce.microwell, 
+  index_list = list(
+    microwell = metadata(sce.microwell)$scmap_cluster_index
+  ),
+  threshold = .5
+)
+
+# scmap-cluster projects the query dataset to all projections defined in the index_list. The results of cell label assignements are merged into one matrix:
+head(scmapCluster_results.microwell$scmap_cluster_labs)
+
+# Corresponding similarities are stored in the scmap_cluster_siml item:
+head(scmapCluster_results.microwell$scmap_cluster_siml)
+
+# scmap also provides combined results of all reference dataset (choose labels corresponding to the largest similarity across reference datasets):
+head(scmapCluster_results.microwell$combined_labs)
+
+# Visualisation
+plot(
+  getSankey(
+    colData(sce.microwell)$cell_type1, 
+    scmapCluster_results.microwell$scmap_cluster_labs[,'microwell'],
+    plot_height = 400,
+    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363','#000080','#CD853F','#8B0000','#FF6347',
+               '#000000','#CD1076','#BFEFFF','#698B22','#CD6889','#FFFF00','#CDBA96','#D02090','#CD4F39',
+               '#EEDD82','#BFEFFF','#D2691E','#008B8B')
+  )
+)
+```
+
+```{r microwell-facs.projection}
+scmapCluster_results.microwell <- scmapCluster(
+  projection = sce.microwell, 
+  index_list = list(
+    tm_facs = metadata(sce.tm_facs)$scmap_cluster_index
+  ),
+  threshold = .5
+)
+
+# scmap-cluster projects the query dataset to all projections defined in the index_list. The results of cell label assignements are merged into one matrix:
+head(scmapCluster_results.microwell$scmap_cluster_labs)
+
+# Corresponding similarities are stored in the scmap_cluster_siml item:
+head(scmapCluster_results.microwell$scmap_cluster_siml)
+
+# scmap also provides combined results of all reference dataset (choose labels corresponding to the largest similarity across reference datasets):
+head(scmapCluster_results.microwell$combined_labs)
+
+# Visualisation
+plot(
+  getSankey(
+    colData(sce.microwell)$cell_type1, 
+    scmapCluster_results.microwell$scmap_cluster_labs[,'tm_facs'],
+    plot_height = 400,
+    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363','#000080','#CD853F','#8B0000','#FF6347',
+               '#000000','#CD1076','#BFEFFF','#698B22','#CD6889','#FFFF00','#CDBA96','#D02090','#CD4F39',
+               '#EEDD82','#BFEFFF','#D2691E','#008B8B')
+  )
+)
+```
+
+```{r microwell-droplet.projection}
+scmapCluster_results.microwell <- scmapCluster(
+  projection = sce.microwell, 
+  index_list = list(
+    tm_droplet = metadata(sce.tm_droplet)$scmap_cluster_index
+  ),
+  threshold = .5
+)
+
+# scmap-cluster projects the query dataset to all projections defined in the index_list. The results of cell label assignements are merged into one matrix:
+head(scmapCluster_results.microwell$scmap_cluster_labs)
+
+# Corresponding similarities are stored in the scmap_cluster_siml item:
+head(scmapCluster_results.microwell$scmap_cluster_siml)
+
+# scmap also provides combined results of all reference dataset (choose labels corresponding to the largest similarity across reference datasets):
+head(scmapCluster_results.microwell$combined_labs)
+
+# Visualisation
+plot(
+  getSankey(
+    colData(sce.microwell)$cell_type1, 
+    scmapCluster_results.microwell$scmap_cluster_labs[,'tm_droplet'],
+    plot_height = 400,
+    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363','#000080','#CD853F','#8B0000','#FF6347',
+               '#000000','#CD1076','#BFEFFF','#698B22','#CD6889','#FFFF00','#CDBA96','#D02090','#CD4F39',
+               '#EEDD82','#BFEFFF','#D2691E','#008B8B')
+  )
+)
+```
+
+```{r droplet-microwell.projection}
+scmapCluster_results.microwell <- scmapCluster(
+  projection = sce.tm_droplet, 
+  index_list = list(
+    microwell = metadata(sce.microwell)$scmap_cluster_index
+  ),
+  threshold = .5
+)
+
+# scmap-cluster projects the query dataset to all projections defined in the index_list. The results of cell label assignements are merged into one matrix:
+head(scmapCluster_results.microwell$scmap_cluster_labs)
+
+# Corresponding similarities are stored in the scmap_cluster_siml item:
+head(scmapCluster_results.microwell$scmap_cluster_siml)
+
+# scmap also provides combined results of all reference dataset (choose labels corresponding to the largest similarity across reference datasets):
+head(scmapCluster_results.microwell$combined_labs)
+
+# Visualisation
+plot(
+  getSankey(
+    colData(sce.tm_droplet)$cell_type1, 
+    scmapCluster_results.microwell$scmap_cluster_labs[,'microwell'],
+    plot_height = 400,
+    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363','#000080','#CD853F','#8B0000','#FF6347',
+               '#000000','#CD1076','#BFEFFF','#698B22','#CD6889','#FFFF00','#CDBA96','#D02090','#CD4F39',
+               '#EEDD82','#BFEFFF','#D2691E','#008B8B')
+  )
+)
+```
+
+```{r facs-microwell.projection}
+scmapCluster_results.microwell <- scmapCluster(
+  projection = sce.tm_facs, 
+  index_list = list(
+    microwell = metadata(sce.microwell)$scmap_cluster_index
+  ),
+  threshold = .5
+)
+
+# scmap-cluster projects the query dataset to all projections defined in the index_list. The results of cell label assignements are merged into one matrix:
+head(scmapCluster_results.microwell$scmap_cluster_labs)
+
+# Corresponding similarities are stored in the scmap_cluster_siml item:
+head(scmapCluster_results.microwell$scmap_cluster_siml)
+
+# scmap also provides combined results of all reference dataset (choose labels corresponding to the largest similarity across reference datasets):
+head(scmapCluster_results.microwell$combined_labs)
+
+# Visualisation
+plot(
+  getSankey(
+    colData(sce.tm_facs)$cell_type1, 
+    scmapCluster_results.microwell$scmap_cluster_labs[,'microwell'],
+    plot_height = 400,
+    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363','#000080','#CD853F','#8B0000','#FF6347',
+               '#000000','#CD1076','#BFEFFF','#698B22','#CD6889','#FFFF00','#CDBA96','#D02090','#CD4F39',
+               '#EEDD82','#BFEFFF','#D2691E','#008B8B')
   )
 )
 ```
@@ -412,6 +679,11 @@ sce.tm_droplet <- indexCell(sce.tm_droplet)
 set.seed(1)
 sce.tm_facs <- indexCell(sce.tm_facs)
 ```
+```{r microwell.indexCell}
+# Fix a random seed to exactly reproduce results:
+set.seed(1)
+sce.microwell <- indexCell(sce.microwell)
+```
 
 
 Unlike scmap-cluster index, scmap-cell index contains information about each cell and therefore cannot be easily visualised. scmap-cell index consists of two items:
@@ -419,6 +691,7 @@ Unlike scmap-cluster index, scmap-cell index contains information about each cel
 ```{r}
 names(metadata(sce.tm_droplet)$scmap_cell_index)
 names(metadata(sce.tm_facs)$scmap_cell_index)
+names(metadata(sce.microwell)$scmap_cell_index)
 ```
 
 
@@ -438,6 +711,12 @@ dim(metadata(sce.tm_facs)$scmap_cell_index$subcentroids[[1]])
 metadata(sce.tm_facs)$scmap_cell_index$subcentroids[[1]][,1:5]
 ```
 
+```{r microwell.subcentroids}
+length(metadata(sce.microwell)$scmap_cell_index$subcentroids)
+dim(metadata(sce.microwell)$scmap_cell_index$subcentroids[[1]])
+metadata(sce.microwell)$scmap_cell_index$subcentroids[[1]][,1:5]
+```
+
 
 #### Sub-clusters
 subclusters contains for every low dimensial subspace indexies of subcentroids which a given cell belongs to:
@@ -449,6 +728,11 @@ metadata(sce.tm_droplet)$scmap_cell_index$subclusters[1:5,1:5]
 ```
 
 ```{r tm.facs.subclusters}
+dim(metadata(sce.tm_facs)$scmap_cell_index$subclusters)
+metadata(sce.tm_facs)$scmap_cell_index$subclusters[1:5,1:5]
+```
+
+```{r microwell.subclusters}
 dim(metadata(sce.tm_facs)$scmap_cell_index$subclusters)
 metadata(sce.tm_facs)$scmap_cell_index$subclusters[1:5,1:5]
 ```
@@ -476,6 +760,17 @@ scmapCell_results.tm_facs <- scmapCell(
 )
 ```
 
+```{r}
+scmapCell_results.microwell <- scmapCell(
+  sce.microwell, 
+  list(
+    microwell = metadata(sce.microwell)$scmap_cell_index
+  )
+)
+```
+
+
+
 ### Results
 scmapCell_results contains results of projection for each reference dataset in a list:
 
@@ -491,6 +786,14 @@ names(scmapCell_results.tm_facs)
 scmapCell_results.tm_facs$tm_facs$cells[,1:3]
 scmapCell_results.tm_facs$tm_facs$similarities[,1:3]
 ```
+
+
+```{r}
+names(scmapCell_results.microwell)
+scmapCell_results.microwell$microwell$cells[,1:3]
+scmapCell_results.microwell$microwell$similarities[,1:3]
+```
+
 
 
 For each dataset there are two matricies. Cells matrix contains the top 10 (scmap default) cell IDs of the cells of the reference dataset that a given cell of the projection dataset is closest to and Similarities matrix contains corresponding cosine similarities.
@@ -517,6 +820,15 @@ scmapCell_clusters.tm_facs <- scmapCell2Cluster(
 )
 ```
 
+```{r}
+scmapCell_clusters.microwell <- scmapCell2Cluster(
+  scmapCell_results.microwell, 
+  list(
+    as.character(colData(sce.microwell)$cell_type1)
+  )
+)
+```
+
 
 scmap-cell results are in the same format as the ones provided by scmap-cluster (see above):
 
@@ -525,6 +837,9 @@ head(scmapCell_clusters.tm_droplet$scmap_cluster_labs)
 ```
 ```{r}
 head(scmapCell_clusters.tm_facs$scmap_cluster_labs)
+```
+```{r}
+head(scmapCell_clusters.microwell$scmap_cluster_labs)
 ```
 
 Corresponding similarities are stored in the scmap_cluster_siml item:
@@ -538,6 +853,11 @@ head(scmapCell_clusters.tm_droplet$combined_labs)
 ```{r}
 head(scmapCell_clusters.tm_facs$scmap_cluster_siml)
 head(scmapCell_clusters.tm_facs$combined_labs)
+```
+
+```{r}
+head(scmapCell_clusters.microwell$scmap_cluster_siml)
+head(scmapCell_clusters.microwell$combined_labs)
 ```
 
 
@@ -559,6 +879,19 @@ plot(
   getSankey(
     colData(sce.tm_facs)$cell_type1, 
     scmapCell_clusters.tm_facs$scmap_cluster_labs[,"tm_facs"],
+    plot_height = 400,
+    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363')
+    # colors = rev(c('#ffffd9','#edf8b1','#c7e9b4','#7fcdbb','#41b6c4','#1d91c0','#225ea8','#253494','#081d58'))
+  )
+)
+
+```
+
+```{r}
+plot(
+  getSankey(
+    colData(sce.microwell)$cell_type1, 
+    scmapCell_clusters.microwell$scmap_cluster_labs[,"microwell"],
     plot_height = 400,
     colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363')
     # colors = rev(c('#ffffd9','#edf8b1','#c7e9b4','#7fcdbb','#41b6c4','#1d91c0','#225ea8','#253494','#081d58'))

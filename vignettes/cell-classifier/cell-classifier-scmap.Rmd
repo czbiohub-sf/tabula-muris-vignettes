@@ -36,10 +36,6 @@ library(scmap)
 library(openxlsx)
 library(stringr)
 
-library(ggplot2)
-library(gplots)
-library(plotly)
-
 ```
 
 As we briefly mentioned in the [previous post](https://github.com/czbiohub/tabula-muris-vignettes/blob/master/vignettes/methods_comparison/methods_comparison.Rmd), instead of manually and arbitrarily deciding which cell ontologies we should be comparing and computing the overlaps at the level of differentially expressed genes, we want to have a method to map on the fly new coming experimental data to existing reference datasets.
@@ -62,7 +58,7 @@ microwell.matrix = readRDS(here("data-microwell-seq", "MCA_merged_mat.rds"))
 microwell.metadata = read_csv(here("data-microwell-seq", "cell-ann.csv"))
 ```
 
-For speed reasons we will be demonstrating the methods for a single tissue. We can choose from the list of tissues available:
+For speed reasons we will be demonstrating the methods for a single organ. We can choose from the list of tissues available:
 ```{r}
 tiss.name.tm.droplet = unique(tm.droplet.metadata$tissue)
 tiss.name.tm.facs = unique(tm.facs.metadata$tissue)
@@ -73,61 +69,16 @@ Let us use ```Bladder`` as the organ of interest:
 ```{r}
 droplet.tiss.interest = "Bladder"
 facs.tiss.interest = "Bladder"
+microwell.tiss.interest = "Bladder"
 ```
 
 
 ## scmap
-It is well-known that cells existing in a continuum of states, and ideally we want to have a method that captures this by either classifying the cell in question as an established cell type or instead providing us the information that such cell cannot be classified using the current reference but informing us of the closest possible classifications.
+It is well-known that cells exist in a continuum of states and ideally we want to have a method that captures this by either classifying the cell in question as an established cell type or instead providing us the information that such cell cannot be classified using the current reference but informing us of the closest possible classifications.
 [scmap](https://www-nature-com.ucsf.idm.oclc.org/articles/nmeth.4644) can map individual cells from a query sample to cell types in the reference (scmap-cluster) or to individual cells in a reference (scmap-cell).
 
 ### scmap input
-If you already have a SingleCellExperiment object, skip this but if you have a matrix or a data frame containing expression data like what we're using then you first need to create an `SingleCellExperiment` object containing your data. 
-
-
-<!--
-For Tabula muris data we read from files
-```{r}
-
-tm.droplet.matrix = readRDS(here("data-tabula-muris", "TM_droplet_mat.rds"))
-tm.droplet.metadata = read_csv(here("data-tabula-muris", "TM_droplet_metadata.csv"))
-
-tm.facs.matrix = readRDS(here("data-tabula-muris", "TM_facs_mat.rds"))
-tm.facs.metadata = read_csv(here("data-tabula-muris", "TM_facs_metadata.csv"))
-# 
-# microwell.matrix = readRDS(here("data-microwell-seq", "MCA_merged_mat.rds"))
-# microwell.metadata = read_csv(here("data-microwell-seq", "MCA_All-batch-removed-assignments.csv"))
-
-```
-
-The list of tissues available can be found by
-```{r}
-tiss.name.tm.droplet = unique(tm.droplet.metadata$tissue)
-tiss.name.tm.facs = unique(tm.facs.metadata$tissue)
-
-# tiss.name.microwellseq = unique(microwell.metadata$Tissue)
-```
-
-We choose a tissue of interest, e.g. bladder, and then use that for the analysis:
-```{r}
-droplet.tiss.interest = "Bladder"
-facs.tiss.interest = "Bladder"
-
-if (droplet.tiss.interest %in% tiss.name.tm.droplet){
-  tm.droplet.tiss <- tm.droplet.matrix[,tm.droplet.metadata$tissue==droplet.tiss.interest] 
-}
-
-if(facs.tiss.interest %in% tiss.name.tm.facs){
-  tm.facs.tiss <- tm.facs.matrix[,tm.facs.metadata$tissue==facs.tiss.interest]
-}
-
-
-
-#microwell.bladder <- microwell.matrix[,microwell.metadata$Tissue=="Bladder"]
-
-```
--->
-
-Next we create the SingleCellExperiment objects.
+If you already have a SingleCellExperiment object, skip this but if you have a matrix or a data frame containing expression data like what we're using then you first need to create an `SingleCellExperiment` object containing your data.
 
 ```{r tm.droplet.sce}
 if (droplet.tiss.interest %in% tiss.name.tm.droplet){
@@ -177,15 +128,11 @@ sce.tm_facs
 ```
 
 ```{r microwell.sce}
-# microwell.matrix = readRDS(here("data-microwell-seq", "MCA_merged_mat.rds"))
-# # microwell.metadata = read_csv(here("data-microwell-seq", "MCA_All-batch-removed-assignments.csv"))
-# microwell.metadata = read_csv(here("data-microwell-seq", "cell-ann.csv"))
 
 microwell.matrix <- microwell.matrix[,colnames(microwell.matrix) %in% microwell.metadata$Cell.name]
 microwell.metadata <- microwell.metadata[microwell.metadata$Cell.name %in% colnames(microwell.matrix),]
 
-# microwell.matrix.tiss <- microwell.matrix[,microwell.metadata$Tissue=="Bladder"]
-microwell.metadata.tiss <- microwell.metadata[microwell.metadata$Tissue=="Bladder",]
+microwell.metadata.tiss <- microwell.metadata[microwell.metadata$Tissue==microwell.tiss.interest,]
 microwell.matrix.tiss <- microwell.matrix[,microwell.metadata.tiss$Cell.name]
 
 microwell.metadata.tiss.ann <- as.data.frame(microwell.metadata.tiss$Cell.Anno, row.names = microwell.metadata.tiss$Cell.name)
@@ -199,11 +146,12 @@ logcounts(sce.microwell) <- log2(normcounts(sce.microwell) + 1)
 rowData(sce.microwell)$feature_symbol <- rownames(sce.microwell)
 isSpike(sce.microwell, "ERCC") <- grepl("^ERCC-", rownames(sce.microwell))
 
-# remove features with duplicated names - not need here
+# remove features with duplicated names
 sce.microwell <- sce.microwell[!duplicated(rownames(sce.microwell)), ]
 
 sce.microwell
 ```
+
 
 ### Feature selection
 
@@ -224,8 +172,7 @@ sce.microwell <- selectFeatures(sce.microwell, suppress_plot = FALSE, n_features
 table(rowData(sce.microwell)$scmap_features)
 ```
 
-
-We will use 250 features instead of the default 500 because we have found that selecting a smaller number of features improves the classification of FACS/smartseq data. We suggest you to fine tune this parameter when loading your own data.
+We will use 250 features instead of the default 500 because we have found that selecting a smaller number of features improves the classification of FACS/smartseq data. We suggest you to fine tune this parameter when looking at your own data.
 
 ## scmap-cluster
 ### Index
@@ -233,40 +180,29 @@ The scmap-cluster index of a reference dataset is created by finding the median 
 
 ```{r tm.droplet.indexCluster}
 sce.tm_droplet <- indexCluster(sce.tm_droplet)
+head(metadata(sce.tm_droplet)$scmap_cluster_index)
+heatmap(as.matrix(metadata(sce.tm_droplet)$scmap_cluster_index),margins=c(9,1),cexCol=0.75, labRow = "")
 ```
 
 ```{r tm.facs.indexCluster}
 sce.tm_facs <- indexCluster(sce.tm_facs)
-```
-
-```{r microwell.indexCluster}
-sce.microwell <- indexCluster(sce.microwell)
-```
-
-The function indexCluster automatically writes the ```scmap_cluster_index``` item of the metadata slot of the reference dataset.
-
-```{r tm.droplet.metadata}
-head(metadata(sce.tm_droplet)$scmap_cluster_index)
-heatmap(as.matrix(metadata(sce.tm_droplet)$scmap_cluster_index),margins=c(9,1),cexCol=0.75, labRow = "")
-```
-<!--
-heatmap.2(as.matrix(metadata(sce.tm_droplet)$scmap_cluster_index),margins=c(10,1), trace="none", scale = "row", Rowv = F,cexCol=0.75, key = FALSE, labRow = "")
-```
--->
-
-```{r tm.facs.metadata}
 head(metadata(sce.tm_facs)$scmap_cluster_index)
 heatmap(as.matrix(metadata(sce.tm_facs)$scmap_cluster_index),margins=c(9,1),cexCol=0.75, labRow = "")
 ```
 
-```{r microwell.metadata}
+```{r microwell.indexCluster}
+sce.microwell <- indexCluster(sce.microwell)
 head(metadata(sce.microwell)$scmap_cluster_index)
 heatmap(as.matrix(metadata(sce.microwell)$scmap_cluster_index),margins=c(12,1),cexCol=0.63, labRow = "")
 ```
 
+The function indexCluster automatically writes the ```scmap_cluster_index``` item of the metadata slot of the reference dataset.
+
 
 ### Projection
-Once the scmap-cluster index has been generated we can use it to project our dataset to itself (just for illustrative purposes). This can be done with one index at a time, but scmap also allows for simultaneous projection to multiple indexes if they are provided as a list:
+Once the scmap-cluster index has been generated we can use it to project our dataset to itself (just for illustrative purposes). This can be done with one index at a time, but scmap also allows for simultaneous projection to multiple indexes if they are provided as a list.
+
+#### Tabula muris 10x data self-projection
 
 ```{r tm.droplet.self-projection}
 scmapCluster_results.tm_droplet <- scmapCluster(
@@ -299,6 +235,7 @@ plot(
 )
 ```
 
+#### Tabula muris FACS self-projection
 ```{r tm.facs.self-projection}
 scmapCluster_results.tm_facs <- scmapCluster(
   projection = sce.tm_facs, 
@@ -330,6 +267,7 @@ plot(
 )
 ```
 
+#### Tabula muris FACS data projected into Tabula muris 10x
 ```{r tm.facs-droplet.projection}
 scmapCluster_results.tm_facs <- scmapCluster(
   projection = sce.tm_facs, 
@@ -360,6 +298,7 @@ plot(
 )
 ```
 
+#### Tabula muris 10x data projected into Tabula muris FACS
 ```{r tm.droplet-facs.projection}
 scmapCluster_results.tm_droplet <- scmapCluster(
   projection = sce.tm_droplet, 
@@ -390,6 +329,7 @@ plot(
 )
 ```
 
+#### microwell-seq data self projection
 ```{r microwell.projection}
 scmapCluster_results.microwell <- scmapCluster(
   projection = sce.microwell, 
@@ -421,6 +361,7 @@ plot(
 )
 ```
 
+#### microwell-seq projected into Tabula muris FACS
 ```{r microwell-facs.projection}
 scmapCluster_results.microwell <- scmapCluster(
   projection = sce.microwell, 
@@ -452,6 +393,7 @@ plot(
 )
 ```
 
+#### microwell-seq projected into Tabula muris 10x
 ```{r microwell-droplet.projection}
 scmapCluster_results.microwell <- scmapCluster(
   projection = sce.microwell, 
@@ -483,6 +425,7 @@ plot(
 )
 ```
 
+#### Tabula muris 10x projected into microwell-seq
 ```{r droplet-microwell.projection}
 scmapCluster_results.microwell <- scmapCluster(
   projection = sce.tm_droplet, 
@@ -514,6 +457,7 @@ plot(
 )
 ```
 
+#### Tabula muris FACS projected into microwell-seq
 ```{r facs-microwell.projection}
 scmapCluster_results.microwell <- scmapCluster(
   projection = sce.tm_facs, 
@@ -546,83 +490,72 @@ plot(
 ```
 
 
-
 ## scmap-cell
 In contrast to scmap-cluster, scmap-cell projects cells of the input dataset to the individual cells of the reference and not to the cell clusters.
 
-### Stochasticity
-scmap-cell contains k-means step which makes it stochastic, i.e. running it multiple times will provide slightly different results. 
+Of note, scmap-cell contains k-means step which makes it stochastic, i.e. running it multiple times will provide slightly different results and because of that we set a seed.
+
+```{r}
+# Fix a random seed to exactly reproduce results:
+set.seed(1)
+```
 
 ### Index
 In the scmap-cell index is created by a product quantiser algorithm in a way that every cell in the reference is identified with a set of sub-centroids found via k-means clustering based on a subset of the features.
 
-
-```{r tm.droplet.indexCell}
-# Fix a random seed to exactly reproduce results:
-set.seed(1)
-sce.tm_droplet <- indexCell(sce.tm_droplet)
+```{r indexCell}
+sce.tm_droplet_cell <- indexCell(sce.tm_droplet)
+sce.tm_facs_cell <- indexCell(sce.tm_facs)
+sce.microwell_cell <- indexCell(sce.microwell)
 ```
-```{r tm.facs.indexCell}
-# Fix a random seed to exactly reproduce results:
-set.seed(1)
-sce.tm_facs <- indexCell(sce.tm_facs)
-```
-```{r microwell.indexCell}
-# Fix a random seed to exactly reproduce results:
-set.seed(1)
-sce.microwell <- indexCell(sce.microwell)
-```
-
 
 Unlike scmap-cluster index, scmap-cell index contains information about each cell and therefore cannot be easily visualised. scmap-cell index consists of two items:
 
 ```{r}
-names(metadata(sce.tm_droplet)$scmap_cell_index)
-names(metadata(sce.tm_facs)$scmap_cell_index)
-names(metadata(sce.microwell)$scmap_cell_index)
+names(metadata(sce.tm_droplet_cell)$scmap_cell_index)
+names(metadata(sce.tm_facs_cell)$scmap_cell_index)
+names(metadata(sce.microwell_cell)$scmap_cell_index)
 ```
 
 
-#### Sub-centroids
+### Sub-centroids
 subcentroids contains coordinates of subcentroids of low dimensional subspaces defined by selected features, k and M parameters of the product quantiser algorithm (see ?indexCell).
 
-
 ```{r tm.droplet.subcentroids}
-length(metadata(sce.tm_droplet)$scmap_cell_index$subcentroids)
-dim(metadata(sce.tm_droplet)$scmap_cell_index$subcentroids[[1]])
-metadata(sce.tm_droplet)$scmap_cell_index$subcentroids[[1]][,1:5]
+length(metadata(sce.tm_droplet_cell)$scmap_cell_index$subcentroids)
+dim(metadata(sce.tm_droplet_cell)$scmap_cell_index$subcentroids[[1]])
+metadata(sce.tm_droplet_cell)$scmap_cell_index$subcentroids[[1]][,1:5]
 ```
 
 ```{r tm.facs.subcentroids}
-length(metadata(sce.tm_facs)$scmap_cell_index$subcentroids)
-dim(metadata(sce.tm_facs)$scmap_cell_index$subcentroids[[1]])
-metadata(sce.tm_facs)$scmap_cell_index$subcentroids[[1]][,1:5]
+length(metadata(sce.tm_facs_cell)$scmap_cell_index$subcentroids)
+dim(metadata(sce.tm_facs_cell)$scmap_cell_index$subcentroids[[1]])
+metadata(sce.tm_facs_cell)$scmap_cell_index$subcentroids[[1]][,1:5]
 ```
 
 ```{r microwell.subcentroids}
-length(metadata(sce.microwell)$scmap_cell_index$subcentroids)
-dim(metadata(sce.microwell)$scmap_cell_index$subcentroids[[1]])
-metadata(sce.microwell)$scmap_cell_index$subcentroids[[1]][,1:5]
+length(metadata(sce.microwell_cell)$scmap_cell_index$subcentroids)
+dim(metadata(sce.microwell_cell)$scmap_cell_index$subcentroids[[1]])
+metadata(sce.microwell_cell)$scmap_cell_index$subcentroids[[1]][,1:5]
 ```
 
 
-#### Sub-clusters
+### Sub-clusters
 subclusters contains for every low dimensial subspace indexies of subcentroids which a given cell belongs to:
 
-
 ```{r tm.droplet.subclusters}
-dim(metadata(sce.tm_droplet)$scmap_cell_index$subclusters)
-metadata(sce.tm_droplet)$scmap_cell_index$subclusters[1:5,1:5]
+dim(metadata(sce.tm_droplet_cell)$scmap_cell_index$subclusters)
+metadata(sce.tm_droplet_cell)$scmap_cell_index$subclusters[1:5,1:5]
 ```
 
 ```{r tm.facs.subclusters}
-dim(metadata(sce.tm_facs)$scmap_cell_index$subclusters)
-metadata(sce.tm_facs)$scmap_cell_index$subclusters[1:5,1:5]
+dim(metadata(sce.tm_facs_cell)$scmap_cell_index$subclusters)
+metadata(sce.tm_facs_cell)$scmap_cell_index$subclusters[1:5,1:5]
 ```
 
 ```{r microwell.subclusters}
-dim(metadata(sce.tm_facs)$scmap_cell_index$subclusters)
-metadata(sce.tm_facs)$scmap_cell_index$subclusters[1:5,1:5]
+dim(metadata(sce.microwell_cell)$scmap_cell_index$subclusters)
+metadata(sce.microwell_cell)$scmap_cell_index$subclusters[1:5,1:5]
 ```
 
 
@@ -632,31 +565,26 @@ Once the scmap-cell indexes have been generated we can use them to project the b
 
 ```{r}
 scmapCell_results.tm_droplet <- scmapCell(
-  sce.tm_droplet, 
+  sce.tm_droplet_cell, 
   list(
-    tm_droplet = metadata(sce.tm_droplet)$scmap_cell_index
+    tm_droplet = metadata(sce.tm_droplet_cell)$scmap_cell_index
   )
 )
-```
 
-```{r}
 scmapCell_results.tm_facs <- scmapCell(
-  sce.tm_facs, 
+  sce.tm_facs_cell, 
   list(
-    tm_facs = metadata(sce.tm_facs)$scmap_cell_index
+    tm_facs = metadata(sce.tm_facs_cell)$scmap_cell_index
   )
 )
-```
 
-```{r}
 scmapCell_results.microwell <- scmapCell(
-  sce.microwell, 
+  sce.microwell_cell, 
   list(
-    microwell = metadata(sce.microwell)$scmap_cell_index
+    microwell = metadata(sce.microwell_cell)$scmap_cell_index
   )
 )
 ```
-
 
 
 ### Results
@@ -683,7 +611,6 @@ scmapCell_results.microwell$microwell$similarities[,1:3]
 ```
 
 
-
 For each dataset there are two matricies. Cells matrix contains the top 10 (scmap default) cell IDs of the cells of the reference dataset that a given cell of the projection dataset is closest to and Similarities matrix contains corresponding cosine similarities.
 
 
@@ -697,18 +624,14 @@ scmapCell_clusters.tm_droplet <- scmapCell2Cluster(
     as.character(colData(sce.tm_droplet)$cell_type1)
   )
 )
-```
 
-```{r}
 scmapCell_clusters.tm_facs <- scmapCell2Cluster(
   scmapCell_results.tm_facs, 
   list(
     as.character(colData(sce.tm_facs)$cell_type1)
   )
 )
-```
 
-```{r}
 scmapCell_clusters.microwell <- scmapCell2Cluster(
   scmapCell_results.microwell, 
   list(
@@ -722,11 +645,7 @@ scmap-cell results are in the same format as the ones provided by scmap-cluster 
 
 ```{r}
 head(scmapCell_clusters.tm_droplet$scmap_cluster_labs)
-```
-```{r}
 head(scmapCell_clusters.tm_facs$scmap_cluster_labs)
-```
-```{r}
 head(scmapCell_clusters.microwell$scmap_cluster_labs)
 ```
 
@@ -736,25 +655,21 @@ Corresponding similarities are stored in the scmap_cluster_siml item:
 ```{r}
 head(scmapCell_clusters.tm_droplet$scmap_cluster_siml)
 head(scmapCell_clusters.tm_droplet$combined_labs)
-```
 
-```{r}
 head(scmapCell_clusters.tm_facs$scmap_cluster_siml)
 head(scmapCell_clusters.tm_facs$combined_labs)
-```
 
-```{r}
 head(scmapCell_clusters.microwell$scmap_cluster_siml)
 head(scmapCell_clusters.microwell$combined_labs)
 ```
 
 
 ### Visualisation
-
+#### Tabula muris 10x data self-projection using scmap-cell
 ```{r}
 plot(
   getSankey(
-    colData(sce.tm_droplet)$cell_type1, 
+    colData(sce.tm_droplet_cell)$cell_type1, 
     scmapCell_clusters.tm_droplet$scmap_cluster_labs[,"tm_droplet"],
     plot_height = 400,
     colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363','#000080','#CD853F','#8B0000','#FF6347',
@@ -764,41 +679,121 @@ plot(
 )
 ```
 
+#### Tabula muris 10x data projected into Tabula muris FACS using scmap-cell
 ```{r}
 plot(
   getSankey(
-    colData(sce.tm_facs)$cell_type1, 
+    colData(sce.tm_droplet_cell)$cell_type1, 
     scmapCell_clusters.tm_facs$scmap_cluster_labs[,"tm_facs"],
     plot_height = 400,
     colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363','#000080','#CD853F','#8B0000','#FF6347',
                '#000000','#CD1076','#BFEFFF','#698B22','#CD6889','#FFFF00','#CDBA96','#D02090','#CD4F39',
                '#EEDD82','#BFEFFF','#D2691E','#008B8B')
-    # colors = rev(c('#ffffd9','#edf8b1','#c7e9b4','#7fcdbb','#41b6c4','#1d91c0','#225ea8','#253494','#081d58'))
+  )
+)
+```
+
+#### Tabula muris 10x data projected into microwell-seq using scmap-cell
+```{r}
+plot(
+  getSankey(
+    colData(sce.tm_droplet_cell)$cell_type1, 
+    scmapCell_clusters.microwell$scmap_cluster_labs[,"microwell"],
+    plot_height = 400,
+    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363','#000080','#CD853F','#8B0000','#FF6347',
+               '#000000','#CD1076','#BFEFFF','#698B22','#CD6889','#FFFF00','#CDBA96','#D02090','#CD4F39',
+               '#EEDD82','#BFEFFF','#D2691E','#008B8B')
+  )
+)
+```
+
+#### Tabula muris FACS data self-projection using scmap-cell
+```{r}
+plot(
+  getSankey(
+    colData(sce.tm_facs_cell)$cell_type1, 
+    scmapCell_clusters.tm_facs$scmap_cluster_labs[,"tm_facs"],
+    plot_height = 400,
+    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363','#000080','#CD853F','#8B0000','#FF6347',
+               '#000000','#CD1076','#BFEFFF','#698B22','#CD6889','#FFFF00','#CDBA96','#D02090','#CD4F39',
+               '#EEDD82','#BFEFFF','#D2691E','#008B8B')
   )
 )
 
 ```
 
+#### Tabula muris FACS data projected into Tabula muris 10x using scmap-cell
+```{r}
+plot(
+  getSankey(
+    colData(sce.tm_facs_cell)$cell_type1, 
+    scmapCell_clusters.tm_droplet$scmap_cluster_labs[,"tm_droplet"],
+    plot_height = 400,
+    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363','#000080','#CD853F','#8B0000','#FF6347',
+               '#000000','#CD1076','#BFEFFF','#698B22','#CD6889','#FFFF00','#CDBA96','#D02090','#CD4F39',
+               '#EEDD82','#BFEFFF','#D2691E','#008B8B')
+  )
+)
+```
+
+#### Tabula muris FACS data projected into microwell-seq using scmap-cell
+```{r}
+plot(
+  getSankey(
+    colData(sce.tm_facs_cell)$cell_type1,  
+    scmapCell_clusters.microwell$scmap_cluster_labs[,"microwell"],
+    plot_height = 400,
+    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363','#000080','#CD853F','#8B0000','#FF6347',
+               '#000000','#CD1076','#BFEFFF','#698B22','#CD6889','#FFFF00','#CDBA96','#D02090','#CD4F39',
+               '#EEDD82','#BFEFFF','#D2691E','#008B8B')
+  )
+)
+```
+
+#### microwell-seq data self-projection using scmap-cell
+```{r}
+plot(
+  getSankey(
+    colData(sce.microwell_cell)$cell_type1, 
+    scmapCell_clusters.microwell$scmap_cluster_labs[,"microwell"],
+    plot_height = 400,
+    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363','#000080','#CD853F','#8B0000','#FF6347',
+               '#000000','#CD1076','#BFEFFF','#698B22','#CD6889','#FFFF00','#CDBA96','#D02090','#CD4F39',
+               '#EEDD82','#BFEFFF','#D2691E','#008B8B')
+  )
+)
+
+```
+
+#### microwell-seq data projected into Tabula muris 10x using scmap-cell
+```{r}
+plot(
+  getSankey(
+    colData(sce.microwell_cell)$cell_type1,  
+    scmapCell_clusters.tm_droplet$scmap_cluster_labs[,"tm_droplet"],
+    plot_height = 400,
+    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363','#000080','#CD853F','#8B0000','#FF6347',
+               '#000000','#CD1076','#BFEFFF','#698B22','#CD6889','#FFFF00','#CDBA96','#D02090','#CD4F39',
+               '#EEDD82','#BFEFFF','#D2691E','#008B8B')
+  )
+)
+
+```
+
+#### microwell-seq data projected into Tabula muris FACS using scmap-cell
 ```{r}
 plot(
   getSankey(
     colData(sce.microwell)$cell_type1, 
-    scmapCell_clusters.microwell$scmap_cluster_labs[,"microwell"],
+    scmapCell_clusters.tm_facs$scmap_cluster_labs[,"tm_facs"],
     plot_height = 400,
-    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363')
-    # colors = rev(c('#ffffd9','#edf8b1','#c7e9b4','#7fcdbb','#41b6c4','#1d91c0','#225ea8','#253494','#081d58'))
+    colors = c('#009ACD', '#9ACD32', '#FF8247','#D02090', '#636363','#000080','#CD853F','#8B0000','#FF6347',
+               '#000000','#CD1076','#BFEFFF','#698B22','#CD6889','#FFFF00','#CDBA96','#D02090','#CD4F39',
+               '#EEDD82','#BFEFFF','#D2691E','#008B8B')
   )
 )
 
 ```
-
-
-
-
-
-
-
-
 
 
 ## SessionInfo

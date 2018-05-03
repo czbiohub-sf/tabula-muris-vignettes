@@ -63,6 +63,12 @@ For speed reasons we will be demonstrating the methods for a single organ. We ca
 tiss.name.tm.droplet = unique(tm.droplet.metadata$tissue)
 tiss.name.tm.facs = unique(tm.facs.metadata$tissue)
 tiss.name.microwellseq = unique(microwell.metadata$Tissue)
+print("Tissues available for Tabula muris 10x")
+tiss.name.tm.droplet
+print("Tissues available for Tabula muris FACS")
+tiss.name.tm.facs
+print("Tissues available for microwell-seq")
+tiss.name.microwellseq
 ```
 
 Let us use ```Bladder`` as the organ of interest:

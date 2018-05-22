@@ -1,0 +1,76 @@
+---
+title: "Ontology Manipulation"
+output: html_notebook
+---
+
+For classifying cells and for comparing a hierarchically clustered tree to the 'ground truth' cell ontology tree.
+
+```{r}
+library(ontologyIndex)
+library(ontologyPlot)
+library(ontologySimilarity)
+library(tidyverse)
+library(here)
+
+co = get_ontology('https://raw.githubusercontent.com/obophenotype/cell-ontology/master/cl-basic.obo', extract_tags='everything')
+```
+
+```{r}
+tm.facs.metadata = read_csv(here("data", "TM_facs_metadata.csv"))
+tm.droplet.metadata = read_csv(here("data", "TM_droplet_metadata.csv"))
+```
+
+```{r}
+tm.ids = unique(c(tm.facs.metadata %>% pull(cell_ontology_id), tm.droplet.metadata %>% pull(cell_ontology_id)))
+```
+
+What are the immune cell types in Tabula Muris?
+
+```{r}
+co$name[grep(pattern = 'leukocyte', x = co$name)]
+onto_plot(co, terms=intersection_with_descendants(co,"CL:0000738",tm.ids))
+```
+
+How do those fit into the bigger hieirarchy?
+
+```{r}
+onto_plot(co, terms=intersection_with_descendants(co,"CL:0000738",get_ancestors(co,tm.ids)))
+```
+
+How do these fit into the full lineage? While there are other, high-order terms, it's most natural for the mouse to begin with Animal Cell.
+
+```{r, fig.width = 20}
+#onto_plot(co, terms=intersection_with_descendants(co,"CL:0000548",get_ancestors(co, c("CL:0000236", "CL:0002420"))))
+pdf('~/Desktop/all_ontology.pdf')
+onto_plot(co, terms=intersection_with_descendants(co,"CL:0000548",get_ancestors(co, tm.ids)))
+dev.off()
+```
+
+```{r}
+co$name[get_descendants(co, c("CL:0000542"))]
+```
+
+A similarity matrix between ontology terms is built into ontologSimilarity. I'm not sure exactly what it is computing.
+
+```{r}
+sim_mat <- get_sim_grid(ontology=co, term_sets=list(intersection_with_descendants(co,"CL:0000738",tm.ids)))
+sim_mat
+```
+
+We may also, eg, use intersection over union of sets of ancestors. Actually, tree distance is union - intersection.
+
+```{r}
+ont_dist <- function(ontology, id1, id2){
+  anc1 = get_ancestors(ontology, id1)
+  anc2 = get_ancestors(ontology, id2)
+  length(union(anc1, anc2)) - length(intersect(anc1, anc2))
+}
+```
+
+Since it's not a tree, though, the distance is somewhat larger.
+
+```{r}
+onto_plot(co, terms = union(get_ancestors(co, "CL:0000818"), get_ancestors(co, "CL:0000914")))
+ont_dist(co, "CL:0000818", "CL:0000914")
+```
+

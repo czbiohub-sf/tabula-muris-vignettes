@@ -56,6 +56,10 @@ For the microwellseq data we're using the `.rds` made available by the Satija la
 ```{r}
 microwell.matrix = readRDS(here("data-microwell-seq", "MCA_merged_mat.rds"))
 microwell.metadata = read_csv(here("data-microwell-seq", "cell-ann.csv"))
+
+microwell.matrix <- microwell.matrix[,colnames(microwell.matrix) %in% microwell.metadata$Cell.name]
+microwell.metadata <- microwell.metadata[microwell.metadata$Cell.name %in% colnames(microwell.matrix),]
+
 ```
 
 For speed reasons we will be demonstrating the methods for a single organ. We can choose from the list of tissues available:
@@ -73,9 +77,9 @@ tiss.name.microwellseq
 
 Let us use ```Bladder`` as the organ of interest:
 ```{r}
-droplet.tiss.interest = "Bladder"
-facs.tiss.interest = "Bladder"
-microwell.tiss.interest = "Bladder"
+droplet.tiss.interest = "Marrow"
+facs.tiss.interest = "Marrow"
+microwell.tiss.interest = "Bone-Marrow"
 ```
 
 
@@ -92,7 +96,7 @@ if (droplet.tiss.interest %in% tiss.name.tm.droplet){
 }
 
 tm.droplet.metadata.tiss <- tm.droplet.metadata[tm.droplet.metadata$tissue == droplet.tiss.interest,]
-tm.droplet.tiss.ann <- as.data.frame(tm.droplet.metadata.tiss$free_annotation, row.names = tm.droplet.metadata.tiss$cell)
+tm.droplet.tiss.ann <- as.data.frame(tm.droplet.metadata.tiss$cell_ontology_class, row.names = tm.droplet.metadata.tiss$cell)
 colnames(tm.droplet.tiss.ann) <- "cell_type1"
 
 sce.tm_droplet <- SingleCellExperiment(assays = list(normcounts = as.matrix(tm.droplet.tiss)), colData = tm.droplet.tiss.ann)
@@ -116,7 +120,7 @@ if(facs.tiss.interest %in% tiss.name.tm.facs){
 }
 
 tm.facs.metadata.tiss <- tm.facs.metadata[tm.facs.metadata$tissue == facs.tiss.interest,]
-tm.facs.tiss.ann <- as.data.frame(tm.facs.metadata.tiss$free_annotation, row.names = tm.facs.metadata.tiss$cell)
+tm.facs.tiss.ann <- as.data.frame(tm.facs.metadata.tiss$cell_ontology_class, row.names = tm.facs.metadata.tiss$cell)
 colnames(tm.facs.tiss.ann) <- "cell_type1"
 
 sce.tm_facs <- SingleCellExperiment(assays = list(normcounts = as.matrix(tm.facs.tiss)), colData = tm.facs.tiss.ann)
@@ -135,14 +139,12 @@ sce.tm_facs
 
 ```{r microwell.sce}
 
-microwell.matrix <- microwell.matrix[,colnames(microwell.matrix) %in% microwell.metadata$Cell.name]
-microwell.metadata <- microwell.metadata[microwell.metadata$Cell.name %in% colnames(microwell.matrix),]
-
 microwell.metadata.tiss <- microwell.metadata[microwell.metadata$Tissue==microwell.tiss.interest,]
 microwell.matrix.tiss <- microwell.matrix[,microwell.metadata.tiss$Cell.name]
 
-microwell.metadata.tiss.ann <- as.data.frame(microwell.metadata.tiss$Cell.Anno, row.names = microwell.metadata.tiss$Cell.name)
-colnames(microwell.metadata.tiss.ann) <- "cell_type1"
+microwell.metadata.tiss.ann <- t(as.data.frame(strsplit(microwell.metadata.tiss$Cell.Anno,"[()]")))
+row.names(microwell.metadata.tiss.ann) <- microwell.metadata.tiss$Cell.name
+colnames(microwell.metadata.tiss.ann) <- c("cell_type1","tissue")
 
 sce.microwell <- SingleCellExperiment(assays = list(normcounts = as.matrix(microwell.matrix.tiss)), colData = microwell.metadata.tiss.ann)
 counts(sce.microwell) <- normcounts(sce.microwell)
@@ -574,21 +576,24 @@ scmapCell_results.tm_droplet <- scmapCell(
   sce.tm_droplet_cell, 
   list(
     tm_droplet = metadata(sce.tm_droplet_cell)$scmap_cell_index
-  )
+  ),
+  w = 10
 )
 
 scmapCell_results.tm_facs <- scmapCell(
   sce.tm_facs_cell, 
   list(
     tm_facs = metadata(sce.tm_facs_cell)$scmap_cell_index
-  )
+  ),
+  w = 10
 )
 
 scmapCell_results.microwell <- scmapCell(
   sce.microwell_cell, 
   list(
     microwell = metadata(sce.microwell_cell)$scmap_cell_index
-  )
+  ),
+  w = 10
 )
 ```
 
@@ -628,21 +633,24 @@ scmapCell_clusters.tm_droplet <- scmapCell2Cluster(
   scmapCell_results.tm_droplet, 
   list(
     as.character(colData(sce.tm_droplet)$cell_type1)
-  )
+  ),
+  threshold = .7
 )
 
 scmapCell_clusters.tm_facs <- scmapCell2Cluster(
   scmapCell_results.tm_facs, 
   list(
     as.character(colData(sce.tm_facs)$cell_type1)
-  )
+  ),
+  threshold = .7
 )
 
 scmapCell_clusters.microwell <- scmapCell2Cluster(
   scmapCell_results.microwell, 
   list(
     as.character(colData(sce.microwell)$cell_type1)
-  )
+  ),
+  threshold = .7
 )
 ```
 

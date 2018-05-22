@@ -1,0 +1,349 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+In this post, we will analyze the differential expression of B cells in different compartments of the body. As this is 19,243 cells in the droplet data and 12,622 cells in the FACS data, I'll show here only the excerpts of the code, while linking the reader to the full analyses on GitHub. For this blog post, we'll focus on the FACS data as that had the largest diversity of tissues (20 total, compared to 11 for Droplet).
+
+## Leverage the Cell Ontology to obtain all "immune" cells
+
+As there may have been some misclassifications of cell annotations, we will first grab all cells whose annotation falls generically into the "immune" class and take the clusters of cells that are clearly B cells from there. Since we used the [Cell Ontology](http://obofoundry.org/ontology/cl.html), this is easy as we can take any cells that were annotated as a "leukocyte" or descendant, as this encompasses all immune cells. We stored both the `cell_ontology_class`, e.g. "leukocyte" and the `cell_ontology_id`. In particular, B cells, which are [lymphoctes, are a descendant (child) of leukocytes](http://www.ontobee.org/ontology/CL?iri=http://purl.obolibrary.org/obo/CL_0000542). The cell ontology ID for [leukocyte](http://purl.obolibrary.org/obo/CL_0000738) is `CL:0000738`. 
+
+First, we load the [`ontologyIndex`](https://www.rdocumentation.org/packages/ontologyIndex/versions/2.4) package for reading ontologies, and grab the latest version of the Cell Ontology from GitHub. Then, we use `get_descendants` to obtain all children terms of "leukocyte," which includes "leukocyte" itself.
+
+```{r}
+library(Seurat)
+library(tidyverse)
+library(here)
+library(ontologyIndex)
+
+cell_ontology = get_ontology('https://raw.githubusercontent.com/obophenotype/cell-ontology/master/cl-basic.obo',
+                             extract_tags='everything')
+
+leukocyte_id = "CL:0000738"
+leukocyte_or_descendant = get_descendants(cell_ontology, roots=leukocyte_id)
+print(paste("length(leukocyte_or_descendant)", length(leukocyte_or_descendant)))
+print(paste("leukocyte_id %in% leukocyte_or_descendant", leukocyte_id %in% leukocyte_or_descendant))
+```
+
+Here are examples of some of the children terms of "leukocyte:"
+
+```{r}
+head(cell_ontology$name[leukocyte_or_descendant])
+```
+
+
+Now that we have the Cell Ontology IDs that we want, it is very easy to grab the cells annotated as such:
+
+```{r}
+method = 'facs'
+metadata = read.csv(here("data", paste0("TM_", method, "_metadata.csv")), 
+                    row.names = 1, stringsAsFactors = FALSE, header=TRUE, sep=",")
+
+immune_ind = metadata$cell_ontology_id %in% leukocyte_or_descendant
+```
+
+To see the full code, please see the [`00_extract_immune_from_global.Rmd`](https://github.com/czbiohub/tabula-muris-vignettes/blob/bcells/vignettes/bcells/00_extract_immune_from_global.nb.html) R Markdown file.
+
+## Filter to Cd19 B cells
+
+The immune system has a rich history of study and we can exploit that for our analysis. B cells speficially express Cd19, so specifically that this gene's promoter is used to [specifically target B cells in Cre-Lox conditional knockout models](https://www.ncbi.nlm.nih.gov/pubmed/26983787).
+
+```{r}
+load(here('vignettes', 'bcells', 'facs_immune_clustered.Robj'))
+
+TSNEPlot(tiss_facs_immune)
+TSNEPlot(tiss_facs_immune, group.by = 'tissue')
+TSNEPlot(tiss_facs_immune, group.by = 'cell_ontology_class')
+TSNEPlot(tiss_facs_immune, group.by = 'mouse.sex')
+TSNEPlot(tiss_facs_immune, group.by = 'mouse.id')
+TSNEPlot(tiss_facs_immune, group.by = 'plate.barcode')
+```
+
+
+To figure out which clusters to call "B cells," I'll look at both the overlap with the original cell ontology annotation and Cd19 expression. First, let's show a table of the overlap:
+
+
+```{r}
+table(tiss_facs_immune@meta.data$cell_ontology_class, tiss_facs_immune@ident)
+```
+
+Looks like clusters 1 is dominant for B cells, but I'm not sure about the rest. Let's look at Cd19 expression in the clusters now.
+
+
+```{r}
+genes_to_check = c('Cd19', # B cell marker
+                   'Ptprc' # Immune cell marker
+                   )
+FeaturePlot(tiss_facs_immune, genes_to_check)
+VlnPlot(tiss_facs_immune, genes_to_check)
+DotPlot(tiss_facs_immune, genes_to_check)
+```
+
+The `VlnPlot` and `DotPlot` make it obvious that clusters 1 and 6 are high for Cd19 expression, so we'll continue with them for further analyses. We'll grab this subset, rescale and renormalize the expression data, then perform PCA and clustering as usual.
+
+## Cd19 positive B cells
+
+```{r}
+load(here('vignettes', 'bcells', 'facs_cd19.Robj'))
+
+table(tiss_facs_cd19@meta.data$tissue, tiss_facs_cd19@ident)
+table(tiss_facs_cd19@meta.data$cell_ontology_class, tiss_facs_cd19@ident)
+```
+
+So it looks like cluster 0 is the maturing B cells in the spleen (it's like school for B cells - where they learn how to respond to antigen), cluster 1 and 2 are the mature, somewhat circulating B cells, and cluster 3 is maturing B cells, largely in the Marrow and Spleen.
+
+
+## Differential expression between tissues
+
+We want to make sure that we have "enough" cells per tissue to get a valid comparison, e.g. if there's 1 cell from a tissue, we don't think that's enough information. So let's take a look at how many cells we have per tissue:
+
+```{r}
+table(tiss_facs_cd19@meta.data$tissue)
+```
+
+We'll set the threshold at a minimum of 30 cells per tissue so we can take a look at Liver. The number of cells in `Limb_Muscle`,`Liver` and `Lung` are 1-2 orders of magnitude smaller than the values in Marrow and Spleen so those *p*-values won't be as significant.
+
+```{r}
+tissues.enough.cells = table(tiss_facs_cd19@meta.data$tissue) > 30
+tissues.enough.cells = tissues.enough.cells[tissues.enough.cells]
+tiss_facs_tissues_enough_cells = SubsetData(tiss_facs_cd19, subset.name='tissue', 
+                                            accept.value = names(tissues.enough.cells))
+sort(unique(tiss_facs_tissues_enough_cells@meta.data$tissue))
+table(tiss_facs_tissues_enough_cells@meta.data$tissue)
+dim(tiss_facs_tissues_enough_cells@scale.data)
+dim(tiss_facs_tissues_enough_cells@scale.data)
+```
+
+As a hack, we'll set the `tissue` column in the metadata as the "ident" so all the default Seurat calculations will use the tissue information rather than the cluster ids.
+
+```{r}
+annotation = 'tissue'
+
+annotations = tiss_facs_tissues_enough_cells@meta.data[,annotation]
+unique_annotations = unique(annotations)
+enumerated_annotations = 0:(length(unique_annotations)-1)
+
+annotation_ident = as.factor(plyr::mapvalues(x = annotations, from = unique_annotations, to = enumerated_annotations))
+names(annotation_ident) = names(tiss_facs_tissues_enough_cells@ident)
+tiss_facs_tissues_enough_cells@ident = annotation_ident
+```
+
+Now let's take a look at the overall relationship between the tissues, based on average expression.
+
+```{r}
+library(ape)
+tiss_facs_tissues_enough_cells = BuildClusterTree(tiss_facs_tissues_enough_cells, do.plot = FALSE)
+
+data.tree = tiss_facs_tissues_enough_cells@cluster.tree[[1]]
+data.tree$tip.label = unique_annotations
+
+plot.phylo(x = data.tree, direction = "downwards")
+nodelabels()
+```
+
+Pretty cool! Looks like the peripheral tissues of `Fat` and `Limb_Muscle` are separate, while the more internal organs -- with the exception of `Marrow`, which is where the B cells are born in the first place -- are quite different. Let's take a look at the top genes distinguishing peripheral vs internal organs.
+
+### Differential expression between Fat and Muscle vs everything else
+
+
+```{r}
+node7_markers = FindMarkersNode(object=tiss_facs_tissues_enough_cells, node=7)
+
+top_node7_markers = head(node7_markers, n=5)
+node7_genes = rownames(top_node7_markers)
+RidgePlot(tiss_facs_tissues_enough_cells, node7_genes, group.by='tissue')
+```
+
+Since there's lots of significant genes, I'll just look at the top few to get a sense of the kind of genes that are different between Fat+Muscle B cells compared to other tissues. Here's a little info I dug up for each of the top five genes from [GeneCards](http://www.genecards.org/) and mild Googling so most of this is speculative
+
+* Nr4a1 - Nuclear receptor and transcription factor. Expressed in lymphocytes as an early response to antigen signaling (https://www.ncbi.nlm.nih.gov/pubmed/27940659/)
+* Crem - cyclic AMP (cAMP) responsive element modulator. Promotes proliferation and survival of activated B cells. [doi:10.1074/jbc.M209329200]
+* Ccr7 - Coiled-coil motif chemokine receptor. Could be a "homing receptor" that recruits the B cells to the Fat and Limb Muscle tissues.
+* Cd83 - Necessary for B cell activation, as shown through a B-cell specific knockout model (Cd19-Cre + Cd83 KO). [https://www.ncbi.nlm.nih.gov/pubmed/26983787]
+* Vps37b - Vacuolar Protein Sorting 37 Homolog B. Interacts with HIV virion, but nothing known about its role in B cells.
+
+
+## Differential expression across all tissues
+
+As a hack, we'll set the `tissue` column in the metadata as the "ident" so all the default Seurat calculations will use the tissue information rather than the cluster ids.
+
+```{r}
+annotation = 'tissue'
+
+annotations = tiss_facs_tissues_enough_cells@meta.data[,annotation]
+unique_annotations = unique(annotations)
+enumerated_annotations = 0:(length(unique_annotations)-1)
+
+annotation_ident = as.factor(plyr::mapvalues(x = annotations, from = unique_annotations, to = enumerated_annotations))
+names(annotation_ident) = names(tiss_facs_tissues_enough_cells@ident)
+tiss_facs_tissues_enough_cells@ident = annotation_ident
+```
+
+Now let's calculate gene expression:
+
+```{r}
+organ_markers = FindAllMarkers(object = tiss_facs_tissues_enough_cells, only.pos = TRUE, min.pct = 0.25, thresh.use = 0.2)
+write_csv(organ_markers, here('vignettes', 'bcells', 'facs_tissue_markers.csv'))
+head(organ_markers)
+```
+
+Add tissue name back to cluster
+
+```{r}
+organ_markers[,'tissue'] = as.factor(plyr::mapvalues(x = organ_markers[,'cluster'], 
+                                                     from = enumerated_annotations, 
+                                                     to = unique_annotations))
+head(organ_markers)
+```
+
+
+Let's take a look at the p values, to see which tissues have the most differential expression:
+
+```{r}
+ggplot(data=organ_markers, aes(x=p_val_adj)) + geom_histogram() + facet_grid(~tissue)
+```
+
+Now let's take a look at these genes' expression across the tissues.
+
+```{r, fig.width=12, fig.height=16}
+top_organ_markers = organ_markers %>% group_by(tissue) %>% top_n(-5, p_val_adj)
+genes.to.plot = sort(unique(top_organ_markers$gene))
+print(length(genes.to.plot))
+
+RidgePlot(tiss_facs_tissues_enough_cells, genes.to.plot, group.by='tissue')
+```
+
+Let's look at a `DotPlot`, which summarized the `RidgePlot`.
+```{r, fig.width=12}
+# Need to reverse gene order so increases alphabetically left to right
+DotPlot(tiss_facs_tissues_enough_cells, rev(genes.to.plot), group.by='tissue')
+```
+
+### Interpretation of differentially expressed genes across tissues
+
+* Fat
+  * Nr4a1 - Transcription factor
+  * H2-Ab1 - Part of the Major Histocompatibility Complex II (MHC II)
+  * Ccr7 - Chemokine receptor
+  * H2-Aa - MHC II
+  * H2-Eb1 - MHC II
+* Heart
+  * Dcn - Decorin, involved in collagen fibril assembly
+  * Igfbp7 - Insulin-like growth factor binding protein 7
+  * Sparc - Matricellular protein, expressed in stromal cell niche, aids in B cell maturation (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4108469/), predicts survival in B-cell lymphoma patients under treatment with rituximab (https://www.ncbi.nlm.nih.gov/pubmed/21173124)
+  * Fbln1 - Fibulin 1. Secreted to become part of the fibrillar extracellular matrix. Role in B cells unclear.
+  * Timp3 - Tissue Inhibitor Of Metalloproteinases 3. Inhibits proteases which degraded the extracellular matrix
+* Limb Muscle
+  * Crem - cyclic AMP (cAMP) responsive element modulator
+  * Rplp0 - Ribosomal
+  * Tppp3 - Tubulin Polymerization Promoting Protein. Specifically marks differentiating tendon sheath and synovial joints (https://www.ncbi.nlm.nih.gov/pubmed/19235716) but unclear what its role is in B cells
+  * Rps24 - Ribosomal
+  * Rplp1 - Ribosomal
+* Lung
+  * Cd74 - MHC II Chaperone
+  * Tsc22d3 - TSC22 Domain Family Member 3, also known as GILZ. Anti-inflammatory glucocorticoid whose expression induced by interleukin 10. Aids in B cell survival and insufficient expression causes B cell lymphomas (https://www.ncbi.nlm.nih.gov/pubmed/26276664)
+  * H2-Dmb2 - MHC II
+  * Ins2 - Insulin??? Don't know what this is doing in B cells because I thought Insulin was only expressed in the pancreas.
+  * Iapp - Islet Amyloid Polypeptide. Another seemingly Pancreatic specific gene.
+* Marrow
+  * Sox4 - Embryonic transcription factor
+  * Myb - Transcription factor required for B cell development (https://www.ncbi.nlm.nih.gov/pubmed/16169500)
+  * Akap12 - A-Kinase Anchoring Protein 12. Subcellularly localizes Protein Kinase A and Protein Kinase C, and related to cell growth
+  * Jun - Jun Proto-Oncogene, AP-1 Transcription Factor Subunit. Related to cell stress, and [genes induced by Jun modulate the interaction of B cell lymphomas with the microenvironment](https://www.ncbi.nlm.nih.gov/pubmed/25533033)
+  * Vpreb3 - V-Set Pre-B Cell Surrogate Light Chain 3. [Receptor found on Pre-B cells](http://www.haematologica.org/content/95/12/2056) but nobody really knows what it does.
+* Spleen
+  * H2-Ab1 - MHC II
+  * H2-Aa - MHC II
+  * Cd74 - MHC II Chaperone
+  * H2-Eb1 - MHC II
+  * Shisa5 - Induces apoptosis
+
+
+So it looks like **Fat**, **Lung**, and **Spleen** all have actively antigen-presenting B cells, as indicated by expression of the major histocompatibility complex (MHC II), which chops up extracellular antigens and presents them on the cell surface to be bound by T cells. I don't know what's going on with Insulin and Islet Amyloid Polypeptide expression in the lung ...
+
+**Heart** has something going on with extracellular matrix proteins but it beats me why these are specific to heart and expressed in B cells.
+
+**Muscle** has similarly enriched genes as the Fat+Muscle previously, plus some Ribosomal genes that may indicate a higher level of protein production but in my experience are usually junk and don't really tell you what's differentially expressed.
+
+**Marrow** has matur*ing* B cells that are still differentiating to maturity.
+
+## Subtissues of Fat
+
+Let's zoom into the Fat tissue, which was specifically dissected into:
+
+* SCAT: Subcutaneous adipose tissue (also white adipose tissue)
+* MAT: Mesenteric adipose tissue (also white adipose tissue)
+* GAT: Gonadal adipose tissue (also white adipose tissue)
+* BAT: Brown adipose tissue
+
+In a [recent paper](https://www.ncbi.nlm.nih.gov/pubmed/29221731) the reserachers found white adipose tissue to contain a substantial lymphocyte population, and while they studied T cells, a similar phenomenon may be happening here.
+
+
+### Gene enrichment in Fat subtissues
+
+Set "tissue_subtissue_fat" as the "ident" for further analysis.
+
+```{r}
+subtissue_if_fat = ifelse(tiss_facs_tissues_enough_cells@meta.data$tissue == "Fat",
+                          paste(":", tiss_facs_tissues_enough_cells@meta.data$subtissue), "")
+tiss_facs_tissues_enough_cells@meta.data[, 'tissue_subtissue_fat'] = 
+  paste0(tiss_facs_tissues_enough_cells@meta.data$tissue, subtissue_if_fat)
+
+annotation = 'tissue_subtissue_fat'
+
+annotations = tiss_facs_tissues_enough_cells@meta.data[,annotation]
+unique_annotations = unique(annotations)
+enumerated_annotations = 0:(length(unique_annotations)-1)
+
+annotation_ident = as.factor(plyr::mapvalues(x = annotations, from = unique_annotations, to = enumerated_annotations))
+names(annotation_ident) = names(tiss_facs_tissues_enough_cells@ident)
+tiss_facs_tissues_enough_cells@ident = annotation_ident
+```
+
+Let's take a look at the genes enriched in the different Fat subtissues.
+
+```{r}
+# Subset to only the cells from the Fat tissue
+tiss_facs_cd19_fat = SubsetData(tiss_facs_tissues_enough_cells, subset.name='tissue', accept.value = "Fat")
+
+fat_subtissue_markers = FindAllMarkers(tiss_facs_cd19_fat, only.pos = TRUE, min.pct = 0.25, thresh.use = 0.2)
+# Only use genes with adjusted p values smaller than 1
+fat_subtissue_markers = filter(fat_subtissue_markers, p_val_adj < 1)
+
+fat_subtissue_markers[, annotation] = as.factor(plyr::mapvalues(x=fat_subtissue_markers$cluster, from=enumerated_annotations, to=unique_annotations))
+top_fat_subtissue_markers = fat_subtissue_markers %>% group_by(tissue_subtissue_fat) %>% top_n(-5, p_val_adj)
+top_fat_subtissue_genes = sort(unique(top_fat_subtissue_markers$gene))
+top_fat_subtissue_markers
+```
+
+Let's take a look at how these are expressed across the different tissues to see if we're really convinced they're "differential."
+
+```{r, fig.width=12, fig.height=12}
+RidgePlot(tiss_facs_cd19_fat,
+          features.plot=top_fat_subtissue_genes, 
+          group.by='tissue_subtissue_fat')
+```
+
+From the `RidgePlot`, I would say that these are the main differential genes:
+
+* Fat: BAT
+  * Klf2 - Kruppel Like Factor 2. More strongly expressed in all cells of BAT compared to others. In one study, found to be [high in double negative B cells](https://DOI.org/10.1038/s41467-017-00723-0)
+* FAT: GAT
+  * Krt6a - Keratin gene, and [found in inflamed lymph nodes](https://doi.org/10.4049/jimmunol.1601157)
+  * Krt5 - Another keratin gene but unclear what it's doing here.
+* Fat: MAT
+  * Lars2 - Leucyl-tRNA synthetase 2, mitochondrial. Found to be [higher in Yy1-/- pro-B cells??](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4941496/)
+  * Asf1a - Anti-Silencing Function 1A Histone Chaperone.
+* Fat: SCAT
+  * Lcp1 - Lymphocyte Cytosolic Protein 1. Bundles actin filaments and is [important in immune cell function (review!)](http://dx.doi.org/10.1155/2012/935173). Lpl-/- mice could not develop marginal zone B cells, and Lcp1 was required for integrin-mediated increase in cellular motility. Seems to somehow be involved in lymphocyte motility.
+  * Eef2 - Eukaryotic elongation factor 2. Involved in transcription and is [tumor-associated](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4027928/).
+  * Pik3ap1 - Phosphoinositide-3-Kinase Adaptor Protein 1. [Links B cell receptor signaling to phosphoinositide 3-kinase (PI3K)-Akt signaling pathway](https://www.ncbi.nlm.nih.gov/pubmed/11163197). 
+
+Maybe **BAT** has more double negative B cells? But we'd need to do an actual experiment to find that out. Looks like **GAT** B cells are expressing extracellular matrix proteins like keratin, maybe for cell adhesion, then **MAT** has some more mystery gene enrichment with tRNAs and histone chaperones. Seems like the **SCAT** has genes important for B cell motility and signaling, but I don't know how to interpret them further.
+
+This is getting a little in the weeds for me as a non-fat expert and non-B cell expert but still seems pretty cool to be able to see some patterns of expression from this dataset.
+
+## Conclusion
+
+It's fun to be able to grab all of the immune cells from this huge 50k cell dataset and quickly zoom in on some interesting differential gene expression across tissue types. I hope you have fun exploring the data!

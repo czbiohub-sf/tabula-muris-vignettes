@@ -50,14 +50,16 @@ dev.off()
 co$name[get_descendants(co, c("CL:0000542"))]
 ```
 
-A similarity matrix between ontology terms is built into ontologSimilarity. I'm not sure exactly what it is computing.
+A similarity matrix between ontology terms is built into ontologySimilarity. I'm not sure exactly what it is computing.
 
 ```{r}
 sim_mat <- get_sim_grid(ontology=co, term_sets=list(intersection_with_descendants(co,"CL:0000738",tm.ids)))
 sim_mat
 ```
 
-We may also, eg, use intersection over union of sets of ancestors. Actually, tree distance is union - intersection.
+Since an ontology is just a collection of `is_a` relationships, the most straightforward distance between nodes will be a function of the two sets of attributes posessed by the nodes.
+
+The number of unshared attributes (the set disjunction) can be easily computed as (union - intersection) of the ancestor sets. In the case of a tree, this is just the tree distance.
 
 ```{r}
 ont_dist <- function(ontology, id1, id2){
@@ -70,7 +72,51 @@ ont_dist <- function(ontology, id1, id2){
 Since it's not a tree, though, the distance is somewhat larger.
 
 ```{r}
-onto_plot(co, terms = union(get_ancestors(co, "CL:0000818"), get_ancestors(co, "CL:0000914")))
+plot_common_tree <- function(t1, t2){
+  onto_plot(co, terms = intersection_with_descendants(co, "CL:0000548", union(get_ancestors(co, t1), get_ancestors(co, t2))))
+}
+plot_common_tree("CL:0000818", "CL:0000914")
 ont_dist(co, "CL:0000818", "CL:0000914")
+```
+
+Given a distance function between nodes, we can assign a distance between trees by asking for the distortion of the pairwise-distance matrices. This is equivalent to embedding the space of trees into the metric space of distance matrices, and taking the $L^1$ distance there.
+
+Popular methods for comparing trees (or DAGs) also include some kind of mutation distance, based on the number of elementary mutations (such as the contraction of an edge) required to turn one tree into another.
+
+The Robinson-Foulds distance is given by considering the bipartitions introduced by cutting a tree, and comparing those sets of bipartitions. This can also be viewed as an inherited embedding distance, where a tree $T$ is mapped into $2^{2^S}$, the set of subsets of subsets of $S$. Namely, $\gamma(T)$ contains a subset $s \subset S$ if deleting some edge $e$ from $T$ separates the labelled vertices into $\{s, s^c\}$. It is also a mutation distance: construct a graph $\mathcal{T}$ on the space of partially labelled trees, labelled by elements of $S$, where two trees are connected by an edge if one can be produced from the other by collapsing an edge. The RF distance between trees is the graph distance in $\mathcal{T}$. 
+
+Since removing `is_a` relationships will not disconnect the ontology DAG, it is not straightforward to generalize the RF distance.
+
+
+Let's compute the distance matrix between all ids appearing in TM according to this metric.
+
+```{r}
+nids = length(tm.ids)
+D = matrix(nrow = nids, ncol = nids)
+for (i in 1:nids){
+  for(j in 1:nids){
+    D[i,j] = ont_dist(co, tm.ids[i], tm.ids[j])
+  }
+}
+```
+
+Cluster with that distance.
+
+```{r, fig.height = 12, fig.width = 18}
+rownames(D) = co$name[tm.ids]
+colnames(D) = co$name[tm.ids]
+d = as.dist(D)
+
+h <- hclust(d, method = "ward.D2")
+plot(h, hang = -4)
+```
+
+
+# Gene Ontology
+
+```{r}
+data(go)
+go$name[grep('surface', go$name)]
+onto_plot(go, terms = get_ancestors(go,"GO:0007475"))
 ```
 

@@ -323,3 +323,6 @@ flycheck_*.el
 
 # altair json files
 altair-data-*.json
+
+# h5ad files
+*.h5ad

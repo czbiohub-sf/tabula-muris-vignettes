@@ -319,3 +319,7 @@ flycheck_*.el
 
 # directory configuration
 .dir-locals.el
+
+
+# altair json files
+altair-data-*.json

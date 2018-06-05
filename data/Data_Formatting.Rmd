@@ -18,7 +18,8 @@ library(here)
 ## FACS
 
 ```{r}
-FACS_files = list.files(here("tabula-muris", "00_data_ingest","00_facs_raw_data","FACS"), full.names = TRUE)
+folder = here("tabula-muris", "00_data_ingest","00_facs_raw_data","FACS")
+FACS_files = list.files(folder, full.names = TRUE)
 
 raw.data.list = list()
 for (file in FACS_files){
@@ -33,10 +34,10 @@ raw.data <- do.call(cbind, raw.data.list)
 Use lexicographic ordering.
 
 ```{r}
-cell_order_FACS <- order(colnames(raw.data))
+cell_order_FACS <- base::order(colnames(raw.data))
 raw.data = raw.data[,cell_order_FACS]
 
-gene_order_FACS <- order(rownames(raw.data))
+gene_order_FACS <- base::order(rownames(raw.data))
 raw.data = raw.data[gene_order_FACS,]
 ```
 
@@ -61,7 +62,7 @@ cell.meta.data = cell.meta.data %>% select(cell, everything())
 Add TM annotations.
 
 ```{r}
-annotations = read.csv(here("tabula-muris", "00_data_ingest", "18_global_annotation_csv",,"annotations_facs.csv"))
+annotations = read.csv(here("tabula-muris", "00_data_ingest", "18_global_annotation_csv","annotations_facs.csv"))
 annotations = annotations %>% select(cell, cell_ontology_class, cell_ontology_id, free_annotation)
 cell.meta.data = cell.meta.data %>% left_join(annotations, on = 'cell')
 ```

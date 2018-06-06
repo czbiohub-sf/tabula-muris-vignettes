@@ -111,7 +111,7 @@ saveRDS(raw.data, here("data", "TM_droplet_mat.rds"))
 ```
 
 ```{r}
-meta.data <- read.csv(here("tabula-muris", "00_data_ingest","01_droplet_raw_data", "metadata_droplet_clean.csv"))
+meta.data <- read.csv(here("tabula-muris", "00_data_ingest","01_droplet_raw_data", "metadata_droplet.csv"))
 rownames(meta.data) <- meta.data$channel
 
 channel_regex = "(.*?_.*?_.*?)_"

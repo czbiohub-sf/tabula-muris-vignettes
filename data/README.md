@@ -2,9 +2,7 @@
 
 ## Data files for R
 
-You can download nicely aggregated data in `.rds` format for easy loading into `R`.
-Simply unzip the contents of [TabulaMuris.zip](https://s3.amazonaws.com/czbiohub-tabula-muris/TabulaMuris.zip)
-into the `data` folder. It can be loaded as
+You can download complete count files as sparse matrices in `.rds` format for easy loading into `R`. Download [TM_facs_mat.rds](https://s3.amazonaws.com/czbiohub-tabula-muris/TM_facs_mat.rds) and [TM_droplet_mat.rds](https://s3.amazonaws.com/czbiohub-tabula-muris/TM_droplet_mat.rds) into the `data` folder. It can be loaded as
 
 ```R
 tm.droplet.matrix = readRDS(here("data", "TM_droplet_mat.rds"))
@@ -13,7 +11,7 @@ tm.droplet.metadata = read_csv(here("data", "TM_droplet_metadata.csv"))
 
 ## Data files for Python
 
-We have also made [AnnData](http://anndata.readthedocs.io/en/latest/)-formatted h5ad files for use in Python; you can download them [here](https://s3.amazonaws.com/czbiohub-tabula-muris/TabulaMuris.h5ad.zip). You can load them using the [Scanpy](http://scanpy.readthedocs.io/en/latest/index.html) library:
+You can download complete count files as sparse matrices using [anndata's](http://anndata.readthedocs.io) `h5ad` file format  for use in Python [here](https://s3.amazonaws.com/czbiohub-tabula-muris/TM_droplet_mat.h5ad) and [here](https://s3.amazonaws.com/czbiohub-tabula-muris/TM_facs_mat.h5ad). You can process the resulting `AnnData` object using, for instance, [Scanpy](http://scanpy.readthedocs.io).
 
 ```python
 import pandas

@@ -12,13 +12,13 @@ When analyzing single-cell sequencing data, it is natural to want to remove the 
 
 We can see a few examples of this phenomenon in the Tabula Muris dataset.
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 library(Seurat)
 library(here)
 library(tidyverse)
 ```
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 tm.droplet.matrix = readRDS(here("data", "TM_droplet_mat.rds"))
 
 tm.droplet.metadata = read_csv(here("data", "TM_droplet_metadata.csv"))
@@ -31,20 +31,20 @@ annotated_cells = tm.droplet.metadata %>% filter(!is.na(cell_ontology_class)) %>
 tmd <- SubsetData(tmd, cells.use = annotated_cells, do.clean = TRUE)
 ```
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 tmd <- NormalizeData(tmd)
 ```
 
-Consider the Bladder. Because the epithelial cells have significantly more UMI on average than the mesenchymal or endothelial cells, we are set up for Simpson's paradox: even if the expression of a gene is positively correlated with nUMI within each cell type, it may be negatively correlated if all cell types are considered together.
+Consider the Bladder. Because the epithelial cells have significantly more UMI on average than the mesenchymal or endothelial cells, we are set up for [Simpson's paradox](https://en.wikipedia.org/wiki/Simpson%27s_paradox): even if the expression of a gene is positively correlated with nUMI within each cell type, it may be negatively correlated if all cell types are considered together.
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 FetchData(tmd, c('nUMI', 'tissue', 'free_annotation'))%>% filter(tissue == 'Bladder') %>%
   ggplot(aes(x = tissue, y = log(nUMI), fill = free_annotation)) + geom_boxplot() + coord_flip()
 ```
 
-The mesenchymal marker _Car3_ is positively correlated with nUMI within each cell type and negatively correlated at the level of the ensemble.
+For example, the mesenchymal marker _Car3_ is positively correlated with nUMI within each cell type and negatively correlated at the level of the ensemble. (The colored lines for each cell type slope up, the black line for the ensemble slopes down.)
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 FetchData(tmd, c('nUMI', 'tissue', 'Car3', 'free_annotation')) %>% filter(tissue == 'Bladder') %>% 
   ggplot(aes(log(nUMI), Car3, color = free_annotation)) + geom_jitter(width = 0.2, alpha = 0.3) + geom_smooth(method = 'lm') + 
   geom_smooth(method = 'lm', color = 'black')
@@ -57,20 +57,22 @@ FetchData(tmd, c('nGene', 'tissue', 'cell_ontology_class'))%>% filter(tissue == 
   ggplot(aes(x = tissue, y = nGene, fill = cell_ontology_class)) + geom_boxplot() + coord_flip()
 ```
 
-Here, the proliferation marker _Top2a_ has quite different correlations with nUMI globally and within each cell type.
+Here, the proliferation marker _Top2a_ has quite different correlations with nGene globally and within each cell type.
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 FetchData(tmd, c('nGene', 'tissue', 'Top2a', 'cell_ontology_class')) %>% filter(tissue == 'Tongue') %>% 
   ggplot(aes(nGene, Top2a, color = cell_ontology_class)) + geom_jitter(width = 0.2, alpha = 0.3) + geom_smooth(method = 'lm') + 
   geom_smooth(method = 'lm', color = 'black')
 ```
 
-Below one can see the potential for this sort of paradox for at least one cell type in every organ collected.
+In fact, this sort of paradox is possible in every organ we collected. Each organ has a cell type which is an ourlier for nGene, setting up a potential Simpson's paradox for each gene differentially expressed in that cell type.
 
-```{r, fig.height = 30}
+```{r, fig.height = 30, warning=FALSE, message=FALSE}
 FetchData(tmd, c('nGene', 'tissue', 'cell_ontology_class'))%>% 
   ggplot(aes(x = tissue, y = nGene, fill = cell_ontology_class)) + geom_boxplot() + coord_flip() + 
   ggtitle('nGene variability between cell types within tissues') + 
   theme(axis.text = element_text(size=40), text = element_text(size=40), legend.position="none")
 ```
+
+Any form of regularization (regressing confounders, batch effect correction) has the potential to introduce artifacts. This is why it's essential that, whatever regularization you used to find clusters or trajectories, you use raw gene counts for computing differential expression. Terms like nUMI, nGene, or batch can be used as covariates in a regression model for gene expression. By giving that final model access to the covariates, instead of trying to 'adjust' for them beforehand, you increase the likelihood that the DE genes you find come from real biological variation.
 

@@ -9,4 +9,4 @@
 `git checkout ucdavies/tutorial`
 
 3. Download the data
-Follow the instructions in the data folder
+\n Follow the instructions in the data folder

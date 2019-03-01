@@ -1,0 +1,169 @@
+---
+title: "UC Davis Tabula Muris Tutorial"
+output: html_notebook
+---
+
+Load the libraries you will need
+```{r}
+library(Seurat)
+library(tidyverse)
+```
+
+If something isn't installed load bioconductor
+```{r}
+source("https://bioconductor.org/biocLite.R")
+biocLite("Seurat")
+biocLite("scmap")
+```
+
+and/or use install.packages:
+```{r}
+install.packages("tidyverse")
+```
+
+
+We can get the Tabula muris data from [here](https://github.com/czbiohub/tabula-muris-vignettes/tree/experiment-comparisons/data):
+```{r}
+tm.droplet.matrix = readRDS('../../data/TM_droplet_mat.rds')
+tm.droplet.metadata = read_csv('../../data/TM_droplet_metadata.csv')
+
+tm.facs.matrix = readRDS('../../data/TM_facs_mat.rds')
+tm.facs.metadata = read_csv('../../data/TM_facs_metadata.csv')
+```
+
+Let's create our Seurat object (https://satijalab.org/seurat/)
+```{r}
+tabula.muris.facs <- CreateSeuratObject(raw.data = tm.facs.matrix, meta.data = tm.facs.metadata)
+tabula.muris.facs
+
+tiss.interest = "Bladder"
+tm.droplet.tiss <- tm.droplet.matrix[,tm.droplet.metadata$tissue==tiss.interest] 
+tm.droplet.metadata.tiss <- tm.droplet.metadata[tm.droplet.metadata$tissue == tiss.interest,]
+tm.droplet.tiss.ann <- as.data.frame(tm.droplet.metadata.tiss, row.names = tm.droplet.metadata.tiss$cell)
+rownames(tm.droplet.tiss.ann) <- tm.droplet.tiss.ann[,1]
+tabula.muris.droplet <- CreateSeuratObject(raw.data = tm.droplet.tiss, meta.data = tm.droplet.tiss.ann)
+tabula.muris.droplet
+```
+
+The data here has already been processed so we can start exploring:
+```{r}
+VlnPlot(object = tabula.muris.droplet, features.plot = c("nGene", "nUMI"), nCol = 3)
+```
+## Normalizing the data
+By default, Seurat employs a global-scaling normalization method “LogNormalize” that normalizes the gene expression measurements for each cell by the total expression, multiplies this by a scale factor (10,000 by default), and log-transforms the result.
+```{r}
+tabula.muris.droplet <- NormalizeData(object = tabula.muris.droplet, normalization.method = "LogNormalize", 
+    scale.factor = 10000)
+```
+
+
+## Detection of variable genes across the single cells
+Seurat calculates highly variable genes and focuses on these for downstream analysis. FindVariableGenes calculates the average expression and dispersion for each gene, places these genes into bins, and then calculates a z-score for dispersion within each bin. This helps control for the relationship between variability and average expression. 
+
+```{r}
+tabula.muris.droplet <- FindVariableGenes(object = tabula.muris.droplet, mean.function = ExpMean, dispersion.function = LogVMR, 
+    x.low.cutoff = 0.0125, x.high.cutoff = 3, y.cutoff = 0.5)
+```
+
+## Scaling data
+Your single cell dataset likely contains ‘uninteresting’ sources of variation. This could include not only technical noise, but batch effects, or even biological sources of variation (cell cycle stage). As suggested in Buettner et al, NBT, 2015, regressing these signals out of the analysis can improve downstream dimensionality reduction and clustering. To mitigate the effect of these signals, Seurat constructs linear models to predict gene expression based on user-defined variables. The scaled z-scored residuals of these models are stored in the scale.data slot, and are used for dimensionality reduction and clustering.
+
+
+```{r}
+tabula.muris.droplet <- ScaleData(object = tabula.muris.droplet)
+```
+
+
+Perform linear dimensional reduction
+Next we perform PCA on the scaled data. By default, the genes in object@var.genes are used as input, but can be defined using pc.genes. We have typically found that running dimensionality reduction on highly variable genes can improve performance. However, with UMI data - particularly after regressing out technical variables, we often see that PCA returns similar (albeit slower) results when run on much larger subsets of genes, including the whole transcriptome.
+
+
+```{r}
+tabula.muris.droplet <- RunPCA(object = tabula.muris.droplet, pc.genes = tabula.muris.droplet@var.genes, do.print = TRUE, pcs.print = 1:5, genes.print = 5)
+```
+
+
+```{r}
+PCAPlot(object = tabula.muris.droplet, dim.1 = 1, dim.2 = 2)
+```
+
+## Determine statistically significant principal components
+To overcome the extensive technical noise in any single gene for scRNA-seq data, Seurat clusters cells based on their PCA scores, with each PC essentially representing a ‘metagene’ that combines information across a correlated gene set. Determining how many PCs to include downstream is therefore an important step.
+
+
+```{r}
+PCElbowPlot(object = tabula.muris.droplet)
+```
+
+## Cluster the cells
+Seurat  includes an graph-based clustering approach compared to (Macosko et al.). Importantly, the distance metric which drives the clustering analysis (based on previously identified PCs) remains the same. However, their approach to partioning the cellular distance matrix into clusters has dramatically improved. The approach was heavily inspired by recent manuscripts which applied graph-based clustering approaches to scRNA-seq data [SNN-Cliq, Xu and Su, Bioinformatics, 2015] and CyTOF data [PhenoGraph, Levine et al., Cell, 2015]. Briefly, these methods embed cells in a graph structure - for example a K-nearest neighbor (KNN) graph, with edges drawn between cells with similar gene expression patterns, and then attempt to partition this graph into highly interconnected ‘quasi-cliques’ or ‘communities’. As in PhenoGraph, they first construct a KNN graph based on the euclidean distance in PCA space, and refine the edge weights between any two cells based on the shared overlap in their local neighborhoods (Jaccard similarity). To cluster the cells, they apply modularity optimization techniques such as the Louvain algorithm (default) or SLM [SLM, Blondel et al., Journal of Statistical Mechanics], to iteratively group cells together, with the goal of optimizing the standard modularity function.
+
+The FindClusters function implements the procedure, and contains a resolution parameter that sets the ‘granularity’ of the downstream clustering, with increased values leading to a greater number of clusters. They found that setting this parameter between 0.6-1.2 typically returns good results for single cell datasets of around 3K cells. Optimal resolution often increases for larger datasets. The clusters are saved in the object@ident slot.
+
+```{r}
+tabula.muris.droplet <- FindClusters(object = tabula.muris.droplet, reduction.type = "pca", dims.use = 1:10, 
+    resolution = 0.6, print.output = 0, save.SNN = TRUE)
+```
+
+## Run Non-linear dimensional reduction (tSNE)
+Seurat uses tSNE as a powerful tool to visualize and explore these datasets. 
+```{r}
+tabula.muris.droplet <- RunTSNE(object = tabula.muris.droplet, dims.use = 1:10, do.fast = TRUE)
+TSNEPlot(tabula.muris.droplet)
+```
+## Finding differentially expressed genes (cluster biomarkers)
+Seurat can help you find markers that define clusters via differential expression. By default, it identifes positive and negative markers of a single cluster (specified in ident.1), compared to all other cells. FindAllMarkers automates this process for all clusters, but you can also test groups of clusters vs. each other, or against all cells.
+
+```{r}
+tabula.muris.droplet.markers <- FindAllMarkers(object = tabula.muris.droplet, only.pos = TRUE, min.pct = 0.25, 
+    thresh.use = 0.25)
+tabula.muris.droplet.markers %>% group_by(cluster) %>% top_n(2, avg_logFC)
+```
+or we can compare two clusters, for example find all markers distinguishing cluster 5 from clusters 0 and 3
+```{r}
+cluster5.markers <- FindMarkers(object = tabula.muris.droplet, ident.1 = 5, ident.2 = c(0, 3), 
+    min.pct = 0.25)
+print(x = head(x = cluster5.markers, n = 5))
+```
+
+## Visualizing marker expression
+
+```{r}
+VlnPlot(object = tabula.muris.droplet, features.plot = c("Car3", "Krt15"))
+```
+
+```{r}
+FeaturePlot(object = tabula.muris.droplet, features.plot = c("Car3", "Krt15", "Cd74", "Cxcl14", 
+    "Hspa1b"), cols.use = c("grey", "blue"), 
+    reduction.use = "tsne")
+```
+
+```{r}
+top10 <- tabula.muris.droplet.markers %>% group_by(cluster) %>% top_n(10, avg_logFC)
+DoHeatmap(object = tabula.muris.droplet, genes.use = top10$gene, slim.col.label = TRUE, remove.key = TRUE)
+```
+
+```{r}
+plot1 <- TSNEPlot(object = tabula.muris.droplet, do.return = TRUE, no.legend = TRUE, do.label = TRUE)
+plot2 <- TSNEPlot(object = tabula.muris.droplet, do.return = TRUE, group.by = "cell_ontology_class", 
+    no.legend = TRUE, do.label = TRUE)
+plot_grid(plot1, plot2)
+```
+
+
+
+# Exercise
+Now choose a tissue of interest and explore the data yourself!
+The available tissues for the droplet dataset are:
+```{r}
+tiss.name.tm.droplet = unique(tm.droplet.metadata$tissue)
+tiss.name.tm.droplet
+```
+
+and for the FACS:
+```{r}
+tiss.name.tm.facs = unique(tm.facs.metadata$tissue)
+tiss.name.tm.facs
+```
+
+

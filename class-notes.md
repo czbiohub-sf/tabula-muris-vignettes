@@ -10,3 +10,5 @@ Follow the instructions in the data folder
 3. Checkout class branch
 
 `git checkout ucdavis/tutorial`
+
+4. Open Rmd notebook in `vignettes/data-exploration/`

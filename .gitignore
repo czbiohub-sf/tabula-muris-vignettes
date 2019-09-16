@@ -324,3 +324,10 @@ flycheck_*.el
 
 # directory configuration
 .dir-locals.el
+
+
+# altair json files
+altair-data-*.json
+
+# h5ad files
+*.h5ad

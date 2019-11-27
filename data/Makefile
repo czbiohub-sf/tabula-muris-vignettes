@@ -1,16 +1,5 @@
-RMDS := $(wildcard *.Rmd)
-VIGNETTE_RMDS := $(wildcard *Vignette*.Rmd)
-CORES=32
 
-all: clean ../tabula-muris/00_data_ingest/00_facs_raw_data
-	for RMD in $(RMDS); do \
-		echo $$RMD; \
-		echo "rmarkdown::render('$$RMD', clean=TRUE)" | R --slave > $$RMD.out 2>$$RMD.err & \
-	done
+all:
+	wget https://s3.amazonaws.com/czbiohub-tabula-muris/TM_droplet_mat.rds
+	wget https://s3.amazonaws.com/czbiohub-tabula-muris/TM_facs_mat.rds
 
-clean:
-	rm -rf *.out *.err *_files
-
-../tabula-muris/00_data_ingest/00_facs_raw_data:
-	cd ../tabula-muris
-	make download_data
